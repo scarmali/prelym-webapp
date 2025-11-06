@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About PRELYM - Prediction of Lysine Modification</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e3a5f;
+            --secondary-color: #2d5aa0;
+            --accent-color: #4a90b8;
+            --light-blue: #6ba6cd;
+            --sky-blue: #87ceeb;
+            --dark-color: #0f2537;
+            --light-gray: #f8fafb;
+            --border-color: #e1ecf4;
+            --text-muted: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        html {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-color);
+            font-weight: 400;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+            color: white;
+            padding: 0;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 20px rgba(30, 58, 95, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)" /></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            padding: 3rem 0;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 5px;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 5px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            overflow: hidden;
+        }
+
+        .card-header {
+            border: none;
+            border-radius: 16px 16px 0 0 !important;
+            font-weight: 600;
+            padding: 1.5rem 2rem;
+        }
+
+        .card-header.bg-primary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%) !important;
+        }
+
+        .card-header.bg-info {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--light-blue) 100%) !important;
+        }
+
+        .card-header.bg-secondary {
+            background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%) !important;
+        }
+
+        .card-header.bg-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #16a34a 100%) !important;
+        }
+
+        .card-header.bg-warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #f59e0b 100%) !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.75rem 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(44, 82, 130, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.2);
+        }
+
+        .btn-outline-light {
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.9);
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: white;
+        }
+
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+        }
+
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+
+        .feature-highlight {
+            background: linear-gradient(135deg, rgba(135, 206, 235, 0.1) 0%, rgba(74, 144, 184, 0.15) 100%);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .citation-box {
+            background: linear-gradient(135deg, rgba(30, 58, 95, 0.05) 0%, rgba(74, 144, 184, 0.1) 100%);
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Footer Styling */
+        .footer {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            position: relative;
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-section h5 {
+            color: white;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-section p {
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .citation-link {
+            color: var(--sky-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .citation-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .github-link {
+            color: var(--light-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .github-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="logo-section">
+                            <div class="logo-icon">
+                                <img src="/logo.png" alt="PRELYM Logo">
+                            </div>
+                            <div>
+                                <h2 class="mb-0" style="font-size: 2rem; font-weight: 600; letter-spacing: -0.5px;">PRELYM</h2>
+                                <p class="mb-0 opacity-75" style="font-size: 0.9rem; font-weight: 300;">About the Science</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <a href="/" class="btn btn-outline-light me-2">
+                            <i class="fas fa-home me-2"></i>Back to Homepage
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">About</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+
+                <!-- Introduction -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0" style="display: flex; align-items: center;">
+                            <div class="me-2" style="width: 32px; height: 32px; background: rgba(255, 255, 255, 0.95); border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 2px;">
+                                <img src="/logo.png" alt="PRELYM Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 6px;">
+                            </div>
+                            About PRELYM
+                        </h3>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
+                        <p style="font-size: 1rem; line-height: 1.6; margin-bottom: 0; color: var(--dark-color);"><strong>PRELYM (Prediction of Lysine Modification)</strong> is a computational tool that predicts which lysine residues and N-terminal amino groups in a protein will react with bioconjugation reagents, and in what order. By analyzing a protein's three-dimensional structure, PRELYM empowers researchers to design more effective protein modifications for therapeutic and biotechnology applications.</p>
+                    </div>
+                </div>
+
+                <!-- Scientific Method -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0"><i class="fas fa-flask me-2"></i>The Science behind PRELYM</h4>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
+                        <p style="font-size: 1rem; line-height: 1.6; color: var(--dark-color);">Protein modification is fundamental to modern biotechnology, from developing longer-lasting therapeutics to creating enzyme-polymer conjugates with enhanced stability. However, predicting where and how proteins will be modified has historically relied on costly trial-and-error experiments.</p>
+
+                        <p style="font-size: 1rem; line-height: 1.6; color: var(--dark-color);">PRELYM transforms this process by using structure-based prediction. The program analyzes several key molecular properties:</p>
+
+                        <ul style="margin-bottom: 1.5rem; font-size: 1rem; line-height: 1.6; color: var(--dark-color);">
+                            <li><strong>Surface Accessibility:</strong> How exposed each amino group is to potential modification</li>
+                            <li><strong>Chemical Environment:</strong> The pKa, local charge, and surrounding chemical interactions</li>
+                            <li><strong>Secondary Structure:</strong> Whether the residue is in a helix, strand, or coil</li>
+                            <li><strong>Quaternary Structure:</strong> How protein oligomerization affects modification patterns</li>
+                        </ul>
+
+                        <p style="font-size: 1rem; line-height: 1.6; color: var(--dark-color);">By integrating these parameters through a validated decision tree algorithm, PRELYM classifies each reactive site as <span class="badge bg-success me-1">fast-reacting</span>, <span class="badge bg-warning me-1">slow-reacting</span>, or <span class="badge bg-secondary me-1">non-reacting</span>. This automated analysis takes just seconds and has been validated across multiple proteins including lysozyme, chymotrypsin, glucose oxidase, avidin, and therapeutic proteins like interferon-α 2a.</p>
+
+                        <h5 style="color: var(--primary-color); margin-top: 2rem; margin-bottom: 1rem;">Origins in ATRP Research</h5>
+
+                        <p style="font-size: 1rem; line-height: 1.6; color: var(--dark-color);">PRELYM emerged from extensive research in Atom Transfer Radical Polymerization (ATRP)—a technique for growing polymers directly from protein surfaces. Unlike traditional PEGylation, ATRP offers precise control over polymer grafting density and location, enabling the creation of protein-polymer conjugates with dramatically improved stability, activity retention, and therapeutic properties.</p>
+
+                        <p style="font-size: 1rem; line-height: 1.6; color: var(--dark-color);">Through systematic characterization of how ATRP initiators react with protein surfaces, the research team developed predictive rules based on tertiary structure analysis. PRELYM automates this knowledge, eliminating the laborious manual calculations previously required.</p>
+                    </div>
+                </div>
+
+                <!-- Broader Applications for the Community -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-users me-2"></i>Broader Applications for the Community</h4>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
+                        <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card metric-card h-100">
+                                <div class="card-body">
+                                    <h6 style="font-weight: 600; color: var(--dark-color);">Therapeutic Protein Engineering</h6>
+                                    <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6;">Predict PEGylation sites in biologics to optimize reaction conditions and minimize heterogeneous product mixtures. PRELYM has successfully predicted modification patterns in FDA-approved therapeutics like PEG-interferon alpha-2a (PEGASYS).</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card metric-card h-100">
+                                <div class="card-body">
+                                    <h6 style="font-weight: 600; color: var(--dark-color);">Bioconjugation Design</h6>
+                                    <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6;">Optimize coupling reactions for antibody-drug conjugates, enzyme immobilization, and biosensor development by understanding which sites will react first and which will remain protected.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card metric-card h-100">
+                                <div class="card-body">
+                                    <h6 style="font-weight: 600; color: var(--dark-color);">Process Optimization</h6>
+                                    <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6;">Reduce development timelines and material costs by computationally screening modification strategies before running experiments.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card metric-card h-100">
+                                <div class="card-body">
+                                    <h6 style="font-weight: 600; color: var(--dark-color);">Rational Protein Design</h6>
+                                    <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6;">Make informed decisions about site-specific modifications to preserve or enhance protein function while achieving desired pharmacological properties.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card metric-card h-100">
+                                <div class="card-body">
+                                    <h6 style="font-weight: 600; color: var(--dark-color);">Educational Tool</h6>
+                                    <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6;">Help students and researchers understand structure-function relationships in protein chemistry and the molecular basis of bioconjugation.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explore our key publications -->
+                <div class="card mb-4" style="margin-top: 4rem; border-top: 3px solid var(--secondary-color);">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Explore our key publications</h4>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(248, 252, 255, 1) 0%, rgba(255, 255, 255, 0.98) 100%);">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4 d-flex">
+                                <div class="citation-box d-flex flex-column h-100" style="padding: 1.5rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 252, 255, 1) 100%); border: 2px solid rgba(74, 144, 184, 0.15); transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--accent-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(74, 144, 184, 0.15)';" onmouseout="this.style.borderColor='rgba(74, 144, 184, 0.15)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.04)';">
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <h6 class="paper-title" style="color: var(--primary-color); font-weight: 600; line-height: 1.3; margin-bottom: 0.75rem; min-height: 65px;">Tertiary structure-based prediction of how ATRP initiators react with proteins</h6>
+                                        <div class="authors-section mb-2" style="flex-grow-1;">
+                                            <p class="authors" style="color: var(--dark-color); font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.6;">S Carmali, H Murata, E Amemiya, K Matyjaszewski, AJ Russell</p>
+                                            <div class="journal-info">
+                                                <span style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">ACS Biomater. Sci. Eng.</span>
+                                                <span class="text-muted" style="font-size: 0.9rem;"> 3(9), 2086-2097 (2017)</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-auto">
+                                            <a href="https://doi.org/10.1021/acsbiomaterials.7b00281" target="_blank" class="btn btn-primary btn-sm" style="border-radius: 20px; padding: 0.5rem 1.2rem; font-weight: 500; background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border: none; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 15px rgba(74, 144, 184, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(74, 144, 184, 0.2)';">
+                                                <i class="fas fa-external-link-alt me-1"></i>View Publication
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4 d-flex">
+                                <div class="citation-box d-flex flex-column h-100" style="padding: 1.5rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 252, 255, 1) 100%); border: 2px solid rgba(74, 144, 184, 0.15); transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--accent-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(74, 144, 184, 0.15)';" onmouseout="this.style.borderColor='rgba(74, 144, 184, 0.15)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.04)';">
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <h6 class="paper-title" style="color: var(--primary-color); font-weight: 600; line-height: 1.3; margin-bottom: 0.75rem; min-height: 65px;">Automated prediction of site and sequence of protein modification with ATRP initiators</h6>
+                                        <div class="authors-section mb-2" style="flex-grow-1;">
+                                            <p class="authors" style="color: var(--dark-color); font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.6;">A Patel, PN Smith, AJ Russell, S Carmali</p>
+                                            <div class="journal-info">
+                                                <span style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">PLoS ONE</span>
+                                                <span class="text-muted" style="font-size: 0.9rem;"> 17(9): e0274606 (2022)</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-auto">
+                                            <a href="https://doi.org/10.1371/journal.pone.0274606" target="_blank" class="btn btn-primary btn-sm" style="border-radius: 20px; padding: 0.5rem 1.2rem; font-weight: 500; background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border: none; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 15px rgba(74, 144, 184, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(74, 144, 184, 0.2)';">
+                                                <i class="fas fa-external-link-alt me-1"></i>View Publication
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4 d-flex">
+                                <div class="citation-box d-flex flex-column h-100" style="padding: 1.5rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 252, 255, 1) 100%); border: 2px solid rgba(74, 144, 184, 0.15); transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--accent-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(74, 144, 184, 0.15)';" onmouseout="this.style.borderColor='rgba(74, 144, 184, 0.15)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.04)';">
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <h6 class="paper-title" style="color: var(--primary-color); font-weight: 600; line-height: 1.3; margin-bottom: 0.75rem; min-height: 65px;">Tailoring site specificity of bioconjugation using step-wise atom-transfer radical polymerization on proteins</h6>
+                                        <div class="authors-section mb-2" style="flex-grow-1;">
+                                            <p class="authors" style="color: var(--dark-color); font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.6;">S Carmali, H Murata, K Matyjaszewski, AJ Russell</p>
+                                            <div class="journal-info">
+                                                <span style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">Biomacromolecules</span>
+                                                <span class="text-muted" style="font-size: 0.9rem;"> 19(10), 4044-4051 (2018)</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-auto">
+                                            <a href="https://doi.org/10.1021/acs.biomac.8b01064" target="_blank" class="btn btn-primary btn-sm" style="border-radius: 20px; padding: 0.5rem 1.2rem; font-weight: 500; background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border: none; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 15px rgba(74, 144, 184, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(74, 144, 184, 0.2)';">
+                                                <i class="fas fa-external-link-alt me-1"></i>View Publication
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4 d-flex">
+                                <div class="citation-box d-flex flex-column h-100" style="padding: 1.5rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 252, 255, 1) 100%); border: 2px solid rgba(74, 144, 184, 0.15); transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--accent-color)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(74, 144, 184, 0.15)';" onmouseout="this.style.borderColor='rgba(74, 144, 184, 0.15)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.04)';">
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <h6 class="paper-title" style="color: var(--primary-color); font-weight: 600; line-height: 1.3; margin-bottom: 0.75rem; min-height: 65px;">Moving protein PEGylation from an art to a data science</h6>
+                                        <div class="authors-section mb-2" style="flex-grow-1;">
+                                            <p class="authors" style="color: var(--dark-color); font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.6;">L Mao, AJ Russell, S Carmali</p>
+                                            <div class="journal-info">
+                                                <span style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">Bioconjugate Chemistry</span>
+                                                <span class="text-muted" style="font-size: 0.9rem;"> 33(9), 1643-1653 (2022)</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-auto">
+                                            <a href="https://doi.org/10.1021/acs.bioconjchem.2c00262" target="_blank" class="btn btn-primary btn-sm" style="border-radius: 20px; padding: 0.5rem 1.2rem; font-weight: 500; background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border: none; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 15px rgba(74, 144, 184, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(74, 144, 184, 0.2)';">
+                                                <i class="fas fa-external-link-alt me-1"></i>View Publication
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="footer-section">
+                            <div class="mb-3">
+                                <i class="fas fa-users-cog fa-2x mb-3" style="color: var(--sky-blue);"></i>
+                                <h4 style="color: white; margin-bottom: 1rem; font-weight: 600;">Interested in Collaboration?</h4>
+                                <p style="margin-bottom: 1.5rem; opacity: 0.9; font-size: 1rem; line-height: 1.5;">We welcome partnerships with researchers, industry professionals, and institutions working in protein engineering, bioconjugation, and computational biology.</p>
+                            </div>
+                            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                <a href="mailto:s.carmali@qub.ac.uk" class="btn btn-light" style="border-radius: 25px; padding: 0.75rem 1.5rem; font-weight: 600; background: rgba(255, 255, 255, 0.95); color: var(--primary-color); border: none; transition: all 0.3s ease;" onmouseover="this.style.background='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0, 0, 0, 0.15)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.95)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                    <i class="fas fa-envelope me-2"></i>Contact Us
+                                </a>
+                                <a href="https://github.com/scarmali/PRELYM" target="_blank" class="btn" style="border-radius: 25px; padding: 0.75rem 1.5rem; font-weight: 600; background: rgba(255, 255, 255, 0.15); color: white; border: 2px solid rgba(255, 255, 255, 0.3); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'; this.style.borderColor='rgba(255, 255, 255, 0.5)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(0)';">
+                                    <i class="fab fa-github me-2"></i>GitHub
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <hr style="border-color: rgba(255, 255, 255, 0.3);">
+                        <p class="mb-0" style="opacity: 0.7; font-size: 0.9rem;">
+                            © 2025 PRELYM - Automated Prediction of Lysine Modifications on Proteins
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

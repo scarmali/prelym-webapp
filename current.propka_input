@@ -1,0 +1,10 @@
+MODEL 1A
+ATOM      1  N   LYS A   1      20.154  16.967  19.805    N+  8.00 
+ATOM      2  C   LYS A   1      17.863  16.793  20.849   BBC     - 
+ATOM      3  O   LYS A   1      18.013  17.683  21.677     -     - 
+ATOM      4  CA  LYS A   1      19.030  16.067  20.181     -     - 
+CONECT    1    4
+CONECT    2    3    4
+CONECT    3    2
+CONECT    4    1    2
+ENDMDL

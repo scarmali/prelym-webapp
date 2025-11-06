@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Preparation Guide - PRELYM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e3a5f;
+            --secondary-color: #2d5aa0;
+            --accent-color: #4a90b8;
+            --light-blue: #6ba6cd;
+            --sky-blue: #87ceeb;
+            --dark-color: #0f2537;
+            --light-gray: #f8fafb;
+            --border-color: #e1ecf4;
+            --text-muted: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-color);
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+            color: white;
+            padding: 0;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 20px rgba(30, 58, 95, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)" /></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            padding: 3rem 0;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 5px;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 5px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            overflow: hidden;
+        }
+
+        .card-header {
+            border: none;
+            border-radius: 16px 16px 0 0 !important;
+            font-weight: 600;
+            padding: 1.5rem 2rem;
+        }
+
+        .card-header.bg-primary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%) !important;
+        }
+
+        .card-header.bg-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #16a34a 100%) !important;
+        }
+
+        .card-header.bg-info {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--light-blue) 100%) !important;
+        }
+
+        .card-header.bg-warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #f59e0b 100%) !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.75rem 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(44, 82, 130, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.2);
+        }
+
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+        }
+
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+
+        .step-card {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-color) 100%);
+        }
+
+        .step-card.border-primary::before {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+
+        .step-card.border-success::before {
+            background: linear-gradient(90deg, var(--success-color) 0%, #16a34a 100%);
+        }
+
+        .step-card.border-warning::before {
+            background: linear-gradient(90deg, var(--warning-color) 0%, #f59e0b 100%);
+        }
+
+        .step-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .step-card .card-body {
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(135, 206, 235, 0.1) 0%, rgba(74, 144, 184, 0.15) 100%);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+        }
+
+        /* Footer Styling */
+        .footer {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            position: relative;
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-section h5 {
+            color: white;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-section p {
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .btn-outline-light {
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.9);
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="logo-section">
+                            <div class="logo-icon">
+                                <img src="/logo.png" alt="PRELYM Logo">
+                            </div>
+                            <div>
+                                <h2 class="mb-0" style="font-size: 2rem; font-weight: 600; letter-spacing: -0.5px;">PRELYM</h2>
+                                <p class="mb-0 opacity-75" style="font-size: 0.9rem; font-weight: 300;">File Preparation Guide</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <a href="/" class="btn btn-outline-light">
+                            <i class="fas fa-home me-2"></i>Back to Homepage
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">File Preparation Guide</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+
+                <!-- Introduction -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-info-circle me-2"></i>Input File Preparation</h4>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
+                        <p class="lead">To execute PRELYM, three input files are necessary. This guide explains the step-by-step process for file preparation.</p>
+                        <div class="alert alert-info">
+                            <h6 style="color: var(--primary-color);"><i class="fas fa-lightbulb me-2"></i>Before You Start</h6>
+                            <ul class="mb-0" style="color: var(--dark-color);">
+                                <li>Ensure you have access to the required web tools (all are free)</li>
+                                <li>Use pH 8.0 for consistency with experimental validation studies</li>
+                                <li>Keep track of your file naming for organization</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step-by-step preparation -->
+                <div class="row">
+                    <!-- Step 1: PDB Structure -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 step-card border-primary">
+                            <div class="card-header bg-light" style="min-height: 80px; display: flex; align-items: center;">
+                                <h5 class="mb-0" style="color: var(--primary-color);">
+                                    <i class="fas fa-cube me-2"></i>Step 1: PDB Structure
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="text-primary">Required: Clean PDB file</h6>
+                                <ol style="color: var(--dark-color);">
+                                    <li>Download your protein PDB file from <a href="https://www.rcsb.org" target="_blank" class="text-primary">RCSB PDB</a></li>
+                                    <li>Open in Discovery Studio or similar molecular modeling software</li>
+                                    <li>Remove all water molecules from the structure</li>
+                                    <li>Add any missing atoms using the software's repair tools</li>
+                                    <li>Save as a new PDB file with a descriptive name</li>
+                                </ol>
+                                <div class="alert alert-light p-2">
+                                    <small><strong>Output:</strong> Clean PDB structure without water molecules</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Hydrogen bonds -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 step-card border-success">
+                            <div class="card-header bg-light" style="min-height: 80px; display: flex; align-items: center;">
+                                <h5 class="mb-0" style="color: var(--primary-color);">
+                                    <i class="fas fa-link me-2"></i>Step 2: H-bond Analysis
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="text-primary">Required: PDB with optimized hydrogens</h6>
+                                <ol style="color: var(--dark-color);">
+                                    <li>Visit <a href="http://molprobity.biochem.duke.edu" target="_blank" class="text-primary">MolProbity</a> web server</li>
+                                    <li>Upload your clean PDB file from Step 1</li>
+                                    <li>Use the "Add Hydrogens" functionality</li>
+                                    <li>Allow the server to optimize hydrogen atom positions and bond lengths</li>
+                                    <li>Download the hydrogen-complete PDB file</li>
+                                </ol>
+                                <div class="alert alert-light p-2">
+                                    <small><strong>Output:</strong> PDB file with fully optimized hydrogen atoms</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Charge file -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 step-card border-warning">
+                            <div class="card-header bg-light" style="min-height: 80px; display: flex; align-items: center;">
+                                <h5 class="mb-0" style="color: var(--primary-color);">
+                                    <i class="fas fa-bolt me-2"></i>Step 3: Charge File
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="text-primary">Required: PQR with partial charges</h6>
+                                <ol style="color: var(--dark-color);">
+                                    <li>Go to <a href="http://server.poissonboltzmann.org" target="_blank" class="text-primary">APBS server</a></li>
+                                    <li>Select "PDB2PQR" job configuration tool</li>
+                                    <li>Upload your clean PDB file from Step 1</li>
+                                    <li>Set pH to 8.0 (or match your experimental conditions)</li>
+                                    <li>Ensure "create an APBS input file" is checked</li>
+                                    <li>Submit job and download the generated .pqr file</li>
+                                </ol>
+                                <div class="alert alert-light p-2">
+                                    <small><strong>Output:</strong> PQR file with atomic partial charges</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File validation -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>File Validation Checklist</h5>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6 style="color: var(--primary-color);">PDB Structure File</h6>
+                                <ul class="list-unstyled" style="color: var(--dark-color);">
+                                    <li><i class="fas fa-check text-success me-2"></i>Contains ATOM records</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>No water molecules (HOH)</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Complete amino acid residues</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Proper PDB format</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 style="color: var(--primary-color);">H-bond Analysis File</h6>
+                                <ul class="list-unstyled" style="color: var(--dark-color);">
+                                    <li><i class="fas fa-check text-success me-2"></i>Hydrogen atoms present</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Optimized bond lengths</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>PDB format maintained</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Same sequence as Step 1</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 style="color: var(--primary-color);">Charge File</h6>
+                                <ul class="list-unstyled" style="color: var(--dark-color);">
+                                    <li><i class="fas fa-check text-success me-2"></i>PQR format</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Partial charges assigned</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Correct pH settings</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>All atoms included</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Files & Workflow -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-download me-2"></i>Example Files: Chymotrypsin</h5>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert" style="background: linear-gradient(135deg, rgba(74, 144, 184, 0.1) 0%, rgba(135, 206, 235, 0.15) 100%); border: 2px solid var(--accent-color); border-radius: 12px;">
+                                    <h6 style="color: var(--primary-color);"><i class="fas fa-gift me-2"></i>Download Example Files</h6>
+                                    <p class="mb-3" style="color: var(--dark-color);">We've provided pre-prepared Chymotrypsin files for testing PRELYM:</p>
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                                        <a href="../chmyotrypsin/4CHA.pdb" download class="btn btn-primary me-md-2" style="display: flex; align-items: center; justify-content: center; min-height: 48px;">
+                                            <i class="fas fa-cube me-2"></i>4CHA.pdb
+                                        </a>
+                                        <a href="../chmyotrypsin/4CHAFH.pdb" download class="btn btn-success me-md-2" style="display: flex; align-items: center; justify-content: center; min-height: 48px;">
+                                            <i class="fas fa-link me-2"></i>4CHAFH.pdb
+                                        </a>
+                                        <a href="../chmyotrypsin/4CHA.pqr" download class="btn btn-warning" style="display: flex; align-items: center; justify-content: center; min-height: 48px;">
+                                            <i class="fas fa-bolt me-2"></i>4CHA.pqr
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Troubleshooting -->
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Common Issues & Solutions</h5>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
+                        <div class="accordion" id="troubleshootingAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                        Missing atoms in PDB file
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                    <div class="accordion-body">
+                                        <strong>Solution:</strong> Use molecular modeling software (Discovery Studio, PyMOL, or ChimeraX) to add missing atoms. Ensure all backbone and sidechain atoms are present before proceeding.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                        MolProbity server errors
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                    <div class="accordion-body">
+                                        <strong>Solution:</strong> Ensure your PDB file is clean and properly formatted. Try alternative tools like Reduce (part of Phenix suite) or ChimeraX's hydrogen addition feature.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                        APBS PDB2PQR fails
+                                    </button>
+                                </h2>
+                                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                    <div class="accordion-body">
+                                        <strong>Solution:</strong> Check for non-standard residues or missing atoms. Try different forcefield options (AMBER, CHARMM, PARSE) in PDB2PQR settings.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="footer-section">
+                            <div class="mb-3">
+                                <i class="fas fa-rocket fa-2x mb-3" style="color: var(--sky-blue);"></i>
+                                <h4 style="color: white; margin-bottom: 1rem; font-weight: 600;">Ready to Start Your Analysis?</h4>
+                                <p style="margin-bottom: 1.5rem; opacity: 0.9; font-size: 1rem; line-height: 1.5;">Once you have prepared your three files according to this guide, you're ready to upload them and start your PRELYM analysis.</p>
+                            </div>
+                            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                <a href="/" class="btn btn-light" style="border-radius: 25px; padding: 0.75rem 1.5rem; font-weight: 600; background: rgba(255, 255, 255, 0.95); color: var(--primary-color); border: none; transition: all 0.3s ease;" onmouseover="this.style.background='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0, 0, 0, 0.15)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.95)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                    <i class="fas fa-rocket me-2"></i>Start PRELYM Analysis
+                                </a>
+                                <a href="/about" class="btn" style="border-radius: 25px; padding: 0.75rem 1.5rem; font-weight: 600; background: rgba(255, 255, 255, 0.15); color: white; border: 2px solid rgba(255, 255, 255, 0.3); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'; this.style.borderColor='rgba(255, 255, 255, 0.5)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(0)';">
+                                    <i class="fas fa-info-circle me-2"></i>Learn More
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <hr style="border-color: rgba(255, 255, 255, 0.3);">
+                        <p class="mb-0" style="opacity: 0.7; font-size: 0.9rem;">
+                            © 2025 PRELYM - Automated Prediction of Lysine Modifications on Proteins
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function downloadAllExamples() {
+            // Download all three example files
+            const files = [
+                { url: '../chmyotrypsin/4CHA.pdb', name: '4CHA.pdb' },
+                { url: '../chmyotrypsin/4CHAFH.pdb', name: '4CHAFH.pdb' },
+                { url: '../chmyotrypsin/4CHA.pqr', name: '4CHA.pqr' }
+            ];
+
+            files.forEach((file, index) => {
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.href = file.url;
+                    link.download = file.name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }, index * 500); // Stagger downloads by 500ms
+            });
+        }
+    </script>
+</body>
+</html>

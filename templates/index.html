@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRELYM - Prediction of Lysine Modification</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e3a5f;
+            --secondary-color: #2d5aa0;
+            --accent-color: #4a90b8;
+            --light-blue: #6ba6cd;
+            --sky-blue: #87ceeb;
+            --dark-color: #0f2537;
+            --light-gray: #f8fafb;
+            --border-color: #e1ecf4;
+            --text-muted: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-color);
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+            color: white;
+            padding: 0;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 20px rgba(30, 58, 95, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)" /></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            padding: 4rem 0 3rem;
+        }
+
+        .header-top {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 5px;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .logo-text h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text .tagline {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin: 0;
+            font-weight: 300;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .main-title {
+            font-size: 3.2rem;
+            font-weight: 500;
+            letter-spacing: -1px;
+            margin-bottom: 2rem;
+            text-align: center;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .main-title br {
+            white-space: normal;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            font-weight: 400;
+            opacity: 0.9;
+            text-align: center;
+            margin-bottom: 1rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.4;
+            white-space: nowrap;
+        }
+
+        .publication-note {
+            font-size: 1rem;
+            opacity: 0.8;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .feature-badges {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .feature-badge {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            margin: 0.25rem;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+            font-weight: 500;
+        }
+
+        .stats-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .progress-container {
+            display: none;
+        }
+
+        .file-input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .drag-drop-area {
+            border: 2px dashed rgba(74, 144, 184, 0.3);
+            border-radius: 12px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drag-drop-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .drag-drop-area:hover {
+            border-color: var(--accent-color);
+            background: linear-gradient(135deg, rgba(74, 144, 184, 0.05) 0%, rgba(135, 206, 235, 0.08) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .drag-drop-area:hover::before {
+            opacity: 1;
+        }
+
+        .drag-drop-area.dragover {
+            border-color: var(--secondary-color);
+            background: linear-gradient(135deg, rgba(74, 144, 184, 0.1) 0%, rgba(135, 206, 235, 0.12) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(45, 90, 160, 0.15);
+        }
+
+        .drag-drop-area.dragover::before {
+            opacity: 1;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+
+        .card-header {
+            border-bottom: 1px solid var(--border-color);
+            background-color: white;
+            border-radius: 12px 12px 0 0 !important;
+            font-weight: 600;
+        }
+
+        .results-table {
+            font-size: 0.875rem;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .step-number {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-weight: 600;
+        }
+
+        .step.active .step-number {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background-color: #38a169;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.75rem 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(44, 82, 130, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(44, 82, 130, 0.2);
+        }
+
+        .btn-lg {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.2);
+        }
+
+        .btn-outline-success {
+            border: 2px solid var(--success-color);
+            color: var(--success-color);
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-success:hover {
+            background: var(--success-color);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+        }
+
+        .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(66, 153, 225, 0.25);
+            outline: none;
+        }
+
+        .input-group-text {
+            border: 2px solid var(--border-color);
+            border-left: none;
+            background: var(--light-gray);
+            border-radius: 0 8px 8px 0;
+            font-weight: 500;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+
+        .scientific-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+
+        /* Enhanced Results Section */
+        .prediction-summary-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prediction-summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--success-color) 0%, var(--warning-color) 50%, var(--danger-color) 100%);
+        }
+
+        .summary-metric {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .summary-metric:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-metric.fast-reacting {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border: 2px solid #22c55e;
+        }
+
+        .summary-metric.slow-reacting {
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            border: 2px solid #fbbf24;
+        }
+
+        .summary-metric.non-reacting {
+            background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+            border: 2px solid #ef4444;
+        }
+
+        .metric-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .results-table {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            background: white;
+        }
+
+        .results-table thead th {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 1rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .results-table tbody td {
+            padding: 0.75rem;
+            border-color: var(--border-color);
+            vertical-align: middle;
+        }
+
+        .results-table tbody tr:hover {
+            background-color: rgba(66, 153, 225, 0.05);
+        }
+
+        .prediction-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .prediction-badge.fast-reacting {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .prediction-badge.slow-reacting {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .prediction-badge.non-reacting {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .results-download-section {
+            background: linear-gradient(135deg, rgba(135, 206, 235, 0.1) 0%, rgba(74, 144, 184, 0.15) 100%);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .download-highlight {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .download-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            border-radius: 10px;
+        }
+
+        .feature-highlight {
+            background: linear-gradient(135deg, rgba(135, 206, 235, 0.1) 0%, rgba(74, 144, 184, 0.15) 100%);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-card h6 {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        #quick-start {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        #quick-start .card-header {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
+            border: none;
+            padding: 1.5rem 2rem;
+        }
+
+        #quick-start .card-body {
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
+        }
+
+        .quick-start-section {
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: white;
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-start-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-color) 100%);
+        }
+
+        .quick-start-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        /* Footer Styling */
+        .footer {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-section h5 {
+            color: white;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-section p {
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .citation-link {
+            color: var(--sky-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .citation-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .github-link {
+            color: var(--light-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .github-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .main-title {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .stats-section .row > div {
+                margin-bottom: 1rem;
+            }
+
+            .logo-text h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .main-title {
+                font-size: 2rem;
+            }
+
+            .feature-badge {
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Professional Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="container">
+                <div class="header-top">
+                    <nav class="header-nav">
+                        <div class="logo-section">
+                            <div class="logo-icon">
+                                <img src="/logo.png" alt="PRELYM Logo">
+                            </div>
+                            <div class="logo-text">
+                                <h1>PRELYM</h1>
+                            </div>
+                        </div>
+                        <div class="nav-links">
+                            <a href="/prepare" class="nav-link">Getting Started</a>
+                            <a href="#upload-section" class="nav-link">Analysis</a>
+                            <a href="/about" class="nav-link">About</a>
+                        </div>
+                    </nav>
+                </div>
+
+                <div class="text-center">
+                    <h1 class="main-title">Automated Prediction of Lysine Modifications<br>on Proteins</h1>
+
+                    <!-- Features Highlight -->
+                    <div class="feature-highlight mt-4">
+                        <div class="row">
+                            <div class="col-md-3 text-center mb-3">
+                                <div class="card metric-card h-100">
+                                    <div class="card-body">
+                                        <i class="fas fa-bolt fa-2x mb-2" style="color: #f59e0b;"></i>
+                                        <h6>Fast Analysis</h6>
+                                        <p class="small text-muted">Rapid processing of protein structures</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center mb-3">
+                                <div class="card metric-card h-100">
+                                    <div class="card-body">
+                                        <i class="fas fa-shield-alt fa-2x mb-2" style="color: #10b981;"></i>
+                                        <h6>Validated Algorithm</h6>
+                                        <p class="small text-muted">Experimentally validated predictions</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center mb-3">
+                                <div class="card metric-card h-100">
+                                    <div class="card-body">
+                                        <i class="fas fa-chart-line fa-2x mb-2" style="color: #3b82f6;"></i>
+                                        <h6>Excel Export</h6>
+                                        <p class="small text-muted">Detailed results in spreadsheet format</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center mb-3">
+                                <div class="card metric-card h-100">
+                                    <div class="card-body">
+                                        <i class="fas fa-cloud fa-2x mb-2" style="color: #8b5cf6;"></i>
+                                        <h6>Web-based</h6>
+                                        <p class="small text-muted">No software installation required</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="subtitle mt-3">Web-based implementation of a tertiary-structure based approach that predicts lysine reactivity for protein modification</p>
+
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+
+                <!-- Quick Start Guide -->
+                <div class="card mb-4" id="quick-start">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Quick Start Guide</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="quick-start-section h-100">
+                                    <h6 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-file-alt me-2"></i>File Requirements</h6>
+                                    <ul class="list-unstyled small" style="color: var(--dark-color);">
+                                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>PDB Structure:</strong> Standard PDB format with ATOM records</li>
+                                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>H-bond File:</strong> PDB with hydrogen atoms added</li>
+                                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Charge File:</strong> PQR format with partial charges</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="quick-start-section h-100">
+                                    <h6 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-cogs me-2"></i>Probe Radius Selection</h6>
+                                    <ul class="list-unstyled small" style="color: var(--dark-color);">
+                                        <li class="mb-2"><i class="fas fa-dot-circle me-2" style="color: var(--accent-color);"></i><strong>1.4 Å:</strong> Standard water accessibility</li>
+                                        <li class="mb-2"><i class="fas fa-dot-circle me-2" style="color: var(--accent-color);"></i><strong>4.2 Å:</strong> ATRP initiator size (recommended)</li>
+                                        <li class="mb-2"><i class="fas fa-dot-circle me-2" style="color: var(--accent-color);"></i><strong>Custom:</strong> Match your specific initiator</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="quick-start-section h-100">
+                                    <h6 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-chart-bar me-2"></i>Result Interpretation</h6>
+                                    <ul class="list-unstyled small" style="color: var(--dark-color);">
+                                        <li class="mb-2"><span class="badge bg-success me-2">Fast</span>High reactivity expected</li>
+                                        <li class="mb-2"><span class="badge bg-warning me-2">Slow</span>Moderate reactivity</li>
+                                        <li class="mb-2"><span class="badge bg-secondary me-2">Non</span>Buried or sterically hindered</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="/prepare" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-book me-2"></i>Detailed File Preparation Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Indicator -->
+                <div class="step-indicator">
+                    <div class="step active" id="step-1">
+                        <div class="step-number">1</div>
+                        <span>Upload Files</span>
+                    </div>
+                    <div class="step" id="step-2">
+                        <div class="step-number">2</div>
+                        <span>Processing</span>
+                    </div>
+                    <div class="step" id="step-3">
+                        <div class="step-number">3</div>
+                        <span>Results</span>
+                    </div>
+                </div>
+
+                <!-- Upload Form -->
+                <div class="card" id="upload-section" style="border: none; border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%); border: none; padding: 1.5rem 2rem;">
+                        <h5 class="mb-0 text-white"><i class="fas fa-upload me-2"></i>File Upload</h5>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);">
+                        <form id="upload-form" enctype="multipart/form-data">
+                            <!-- PDB Structure File -->
+                            <div class="file-input-group">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-cube me-2"></i>PDB Structure File
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="drag-drop-area" data-input="pdb_file">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-2">Drag and drop your PDB file here or click to browse</p>
+                                    <small class="text-muted">Main protein structure file (.pdb)</small>
+                                    <input type="file" class="form-control d-none" id="pdb_file" name="pdb_file" accept=".pdb" required>
+                                </div>
+                                <div class="file-info mt-2" id="pdb_file_info"></div>
+                            </div>
+
+                            <!-- H-Bond Analysis File -->
+                            <div class="file-input-group">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-link me-2"></i>H-Bond Analysis File
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="drag-drop-area" data-input="hbond_file">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-2">Drag and drop your H-bond file here or click to browse</p>
+                                    <small class="text-muted">PDB file for hydrogen bond analysis (.pdb)</small>
+                                    <input type="file" class="form-control d-none" id="hbond_file" name="hbond_file" accept=".pdb" required>
+                                </div>
+                                <div class="file-info mt-2" id="hbond_file_info"></div>
+                            </div>
+
+                            <!-- Charge File -->
+                            <div class="file-input-group">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-bolt me-2"></i>Charge File
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="drag-drop-area" data-input="charge_file">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-2">Drag and drop your charge file here or click to browse</p>
+                                    <small class="text-muted">Charge information file (.pqr, .txt)</small>
+                                    <input type="file" class="form-control d-none" id="charge_file" name="charge_file" accept=".pqr,.txt" required>
+                                </div>
+                                <div class="file-info mt-2" id="charge_file_info"></div>
+                            </div>
+
+                            <!-- Probe Radius -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-ruler me-2"></i>Probe Radius (Å)
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="probe_radius" name="probe_radius"
+                                           value="1.4" min="0.1" max="20.0" step="0.1" required>
+                                    <span class="input-group-text">Å</span>
+                                </div>
+                                <div class="form-text text-muted">
+                                    <strong>Recommended values:</strong><br>
+                                    • <strong>1.4 Å</strong> - Standard water probe (default)<br>
+                                    • <strong>4.2 Å</strong> - ATRP initiator probe (experimental validation)<br>
+                                    • <strong>Custom</strong> - Based on your specific initiator size
+                                </div>
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="setProbeRadius(1.4)">1.4 Å</button>
+                                    <button type="button" class="btn btn-sm btn-outline-success" onclick="setProbeRadius(4.2)">4.2 Å</button>
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                                    <i class="fas fa-rocket me-2"></i>Start Analysis
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Progress Section -->
+                <div class="card shadow mt-4 progress-container" id="progress-section">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Processing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress mb-3" style="height: 20px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                 role="progressbar" style="width: 0%" id="progress-bar"></div>
+                        </div>
+                        <p class="mb-0" id="progress-message">Initializing...</p>
+                        <small class="text-muted">Job ID: <span id="job-id"></span></small>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div class="card shadow mt-4 progress-container" id="results-section">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <button class="btn btn-success" id="download-btn">
+                                    <i class="fas fa-download me-2"></i>Download Excel Results
+                                </button>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-outline-primary" id="new-analysis-btn">
+                                    <i class="fas fa-plus me-2"></i>New Analysis
+                                </button>
+                            </div>
+                        </div>
+                        <div id="results-preview"></div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="footer-section">
+                            <h5><i class="fas fa-quote-left me-2"></i>Using this software for a publication?</h5>
+                            <p>Find the proper citation here:</p>
+                            <a href="https://doi.org/10.1371/journal.pone.0274606" target="_blank" class="citation-link">
+                                <i class="fas fa-external-link-alt me-2"></i>https://doi.org/10.1371/journal.pone.0274606
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="footer-section">
+                            <h5><i class="fas fa-bug me-2"></i>Found a bug?</h5>
+                            <p>Report any issues to the respective GitHub project:</p>
+                            <a href="https://github.com/scarmali/PRELYM" target="_blank" class="github-link">
+                                <i class="fab fa-github me-2"></i>Report an Issue
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <hr style="border-color: rgba(255, 255, 255, 0.3);">
+                        <p class="mb-0" style="opacity: 0.7; font-size: 0.9rem;">
+                            © 2025 PRELYM - Automated Prediction of Lysine Modifications on Proteins
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentJobId = null;
+        let pollInterval = null;
+
+        // Drag and drop functionality
+        document.querySelectorAll('.drag-drop-area').forEach(area => {
+            const input = area.querySelector('input[type="file"]');
+            const inputId = area.dataset.input;
+
+            area.addEventListener('click', () => input.click());
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    input.files = e.dataTransfer.files;
+                    updateFileInfo(inputId, e.dataTransfer.files[0]);
+                }
+            });
+
+            input.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    updateFileInfo(inputId, e.target.files[0]);
+                }
+            });
+        });
+
+        function updateFileInfo(inputId, file) {
+            const infoDiv = document.getElementById(inputId + '_info');
+            infoDiv.innerHTML = `
+                <div class="alert alert-success py-2">
+                    <i class="fas fa-check me-2"></i>
+                    <strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                </div>
+            `;
+        }
+
+        // Form submission
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const submitBtn = document.getElementById('submit-btn');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    currentJobId = result.job_id;
+                    document.getElementById('job-id').textContent = currentJobId;
+
+                    // Update step indicators
+                    document.getElementById('step-1').classList.add('completed');
+                    document.getElementById('step-1').classList.remove('active');
+                    document.getElementById('step-2').classList.add('active');
+
+                    // Show progress section
+                    document.getElementById('progress-section').style.display = 'block';
+                    document.getElementById('upload-section').style.display = 'none';
+
+                    // Start polling for progress
+                    startProgressPolling();
+                } else {
+                    throw new Error(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-rocket me-2"></i>Start Analysis';
+            }
+        });
+
+        function startProgressPolling() {
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/status/${currentJobId}`);
+                    const status = await response.json();
+
+                    document.getElementById('progress-bar').style.width = status.progress + '%';
+                    document.getElementById('progress-message').textContent = status.message;
+
+                    if (status.status === 'completed') {
+                        clearInterval(pollInterval);
+                        showResults();
+                    } else if (status.status === 'error') {
+                        clearInterval(pollInterval);
+                        showError(status.message);
+                    }
+                } catch (error) {
+                    console.error('Error polling status:', error);
+                }
+            }, 1000);
+        }
+
+        async function showResults() {
+            // Update step indicators
+            document.getElementById('step-2').classList.add('completed');
+            document.getElementById('step-2').classList.remove('active');
+            document.getElementById('step-3').classList.add('active');
+
+            // Hide progress, show results
+            document.getElementById('progress-section').style.display = 'none';
+            document.getElementById('results-section').style.display = 'block';
+
+            // Load results preview
+            try {
+                const response = await fetch(`/preview/${currentJobId}`);
+                const preview = await response.json();
+
+                if (response.ok) {
+                    displayResultsPreview(preview);
+                } else {
+                    document.getElementById('results-preview').innerHTML =
+                        '<div class="alert alert-warning">Preview not available</div>';
+                }
+            } catch (error) {
+                console.error('Error loading preview:', error);
+            }
+        }
+
+        function displayResultsPreview(preview) {
+            // Calculate prediction summary
+            const predictions = preview.data.map(row => row['Interaction'] || row['Prediction']);
+            const fastCount = predictions.filter(p => p === 'fast-reacting').length;
+            const slowCount = predictions.filter(p => p === 'slow-reacting').length;
+            const nonCount = predictions.filter(p => p === 'non-reacting').length;
+
+            // Enhanced download section
+            const downloadHtml = `
+                <div class="results-download-section">
+                    <div class="download-highlight">
+                        <div class="download-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1 text-primary">Complete Analysis Available</h5>
+                            <p class="mb-0 text-muted">Download the full Excel report with all ${preview.total_rows} residues and detailed parameters</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button class="btn btn-primary w-100" id="download-btn-enhanced">
+                                <i class="fas fa-file-excel me-2"></i>Download Excel Results
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-primary w-100" id="new-analysis-btn-enhanced">
+                                <i class="fas fa-plus me-2"></i>New Analysis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const summaryHtml = `
+                <div class="prediction-summary-card">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-chart-pie me-2"></i>Prediction Summary (${preview.total_rows} lysine residues)
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="summary-metric fast-reacting">
+                                <div class="metric-number text-success">${fastCount}</div>
+                                <div class="metric-label text-success">Fast-reacting</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-metric slow-reacting">
+                                <div class="metric-number" style="color: var(--warning-color)">${slowCount}</div>
+                                <div class="metric-label" style="color: var(--warning-color)">Slow-reacting</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-metric non-reacting">
+                                <div class="metric-number text-danger">${nonCount}</div>
+                                <div class="metric-label text-danger">Non-reacting</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const tableHtml = `
+                <div class="table-responsive">
+                    <table class="table table-striped results-table">
+                        <thead class="table-dark">
+                            <tr>
+                                ${preview.columns.map(col => `<th>${col}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${preview.data.slice(0, 10).map(row => {
+                                const prediction = row['Interaction'] || row['Prediction'];
+                                const badgeClass = prediction === 'fast-reacting' ? 'bg-success' :
+                                                 prediction === 'slow-reacting' ? 'bg-warning' : 'bg-secondary';
+                                return `<tr>${preview.columns.map(col => {
+                                    if (col === 'Interaction' || col === 'Prediction') {
+                                        return `<td><span class="badge ${badgeClass}">${row[col] || ''}</span></td>`;
+                                    }
+                                    return `<td>${row[col] || ''}</td>`;
+                                }).join('')}</tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted mt-2">
+                    Showing first 10 rows of ${preview.total_rows} total results.
+                    Download the Excel file for complete data and analysis.
+                </p>
+            `;
+            document.getElementById('results-preview').innerHTML = downloadHtml + summaryHtml + tableHtml;
+
+            // Add event listeners for enhanced buttons
+            document.getElementById('download-btn-enhanced').addEventListener('click', () => {
+                if (currentJobId) {
+                    window.location.href = `/results/${currentJobId}`;
+                }
+            });
+
+            document.getElementById('new-analysis-btn-enhanced').addEventListener('click', () => {
+                location.reload();
+            });
+        }
+
+        function setProbeRadius(value) {
+            document.getElementById('probe_radius').value = value;
+        }
+
+        function showError(message) {
+            document.getElementById('progress-section').innerHTML = `
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Analysis Failed:</strong> ${message}
+                    </div>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-refresh me-2"></i>Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        // Download button
+        document.getElementById('download-btn').addEventListener('click', () => {
+            if (currentJobId) {
+                window.location.href = `/results/${currentJobId}`;
+            }
+        });
+
+        // New analysis button
+        document.getElementById('new-analysis-btn').addEventListener('click', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>
