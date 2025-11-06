@@ -32,8 +32,32 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
 
-# Store job status in memory (use Redis/database in production)
-job_status = {}
+# Store job status with file persistence for production
+import pickle
+import os
+
+def load_job_status():
+    """Load job status from file"""
+    status_file = os.path.join(app.config['RESULTS_FOLDER'], 'job_status.pkl')
+    try:
+        if os.path.exists(status_file):
+            with open(status_file, 'rb') as f:
+                return pickle.load(f)
+    except Exception as e:
+        print(f"Error loading job status: {e}")
+    return {}
+
+def save_job_status():
+    """Save job status to file"""
+    status_file = os.path.join(app.config['RESULTS_FOLDER'], 'job_status.pkl')
+    try:
+        with open(status_file, 'wb') as f:
+            pickle.dump(job_status, f)
+    except Exception as e:
+        print(f"Error saving job status: {e}")
+
+# Load existing job status or create new dict
+job_status = load_job_status()
 
 ALLOWED_EXTENSIONS = {'pdb', 'txt', 'pqr'}  # Added pqr for charge files
 
@@ -46,6 +70,7 @@ def process_protein_analysis(job_id, pdb_file, hbond_file, charge_file, probe_ra
         job_status[job_id]['status'] = 'processing'
         job_status[job_id]['progress'] = 10
         job_status[job_id]['message'] = 'Starting analysis...'
+        save_job_status()
 
         # Change to job directory to match original script behavior
         original_cwd = os.getcwd()
@@ -97,6 +122,7 @@ def process_protein_analysis(job_id, pdb_file, hbond_file, charge_file, probe_ra
             job_status[job_id]['status'] = 'completed'
             job_status[job_id]['progress'] = 100
             job_status[job_id]['message'] = 'Analysis completed successfully!'
+            save_job_status()
 
         finally:
             # Always restore original working directory
@@ -106,6 +132,7 @@ def process_protein_analysis(job_id, pdb_file, hbond_file, charge_file, probe_ra
         os.chdir(original_cwd)  # Ensure we restore directory even on error
         job_status[job_id]['status'] = 'error'
         job_status[job_id]['message'] = f'Error: {str(e)}'
+        save_job_status()
         print(f"Error in job {job_id}: {str(e)}")  # For debugging
 
 @app.route('/')
@@ -224,6 +251,7 @@ def upload_files():
             },
             'probe_radius': probe_radius
         }
+        save_job_status()  # Persist to file
 
         # Start background processing
         thread = Thread(target=process_protein_analysis,
