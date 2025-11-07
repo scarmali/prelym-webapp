@@ -36,9 +36,12 @@ os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
 import pickle
 import os
 
+# Store the original app directory for consistent file paths
+APP_ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
+
 def load_job_status():
     """Load job status from file"""
-    status_file = os.path.abspath(os.path.join(app.config['RESULTS_FOLDER'], 'job_status.pkl'))
+    status_file = os.path.join(APP_ROOT_DIR, app.config['RESULTS_FOLDER'], 'job_status.pkl')
     try:
         if os.path.exists(status_file):
             with open(status_file, 'rb') as f:
@@ -56,7 +59,7 @@ def load_job_status():
 def save_job_status():
     """Save job status to file"""
     global job_status
-    status_file = os.path.abspath(os.path.join(app.config['RESULTS_FOLDER'], 'job_status.pkl'))
+    status_file = os.path.join(APP_ROOT_DIR, app.config['RESULTS_FOLDER'], 'job_status.pkl')
     try:
         os.makedirs(os.path.dirname(status_file), exist_ok=True)
         with open(status_file, 'wb') as f:
@@ -66,6 +69,7 @@ def save_job_status():
         print(f"Error saving job status: {e}")
         print(f"Current working directory: {os.getcwd()}")
         print(f"Target file: {status_file}")
+        print(f"APP_ROOT_DIR: {APP_ROOT_DIR}")
         import traceback
         traceback.print_exc()
 
@@ -125,7 +129,7 @@ def process_protein_analysis(job_id, pdb_file, hbond_file, charge_file, probe_ra
             job_status[job_id]['message'] = 'Finalizing results...'
 
             # The original function creates 'Results.xlsx' in current directory
-            results_file = os.path.join(original_cwd, app.config['RESULTS_FOLDER'], f'{job_id}_results.xlsx')
+            results_file = os.path.join(APP_ROOT_DIR, app.config['RESULTS_FOLDER'], f'{job_id}_results.xlsx')
             if os.path.exists('Results.xlsx'):
                 shutil.move('Results.xlsx', results_file)
                 job_status[job_id]['results_file'] = results_file
