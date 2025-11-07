@@ -38,23 +38,36 @@ import os
 
 def load_job_status():
     """Load job status from file"""
-    status_file = os.path.join(app.config['RESULTS_FOLDER'], 'job_status.pkl')
+    status_file = os.path.abspath(os.path.join(app.config['RESULTS_FOLDER'], 'job_status.pkl'))
     try:
         if os.path.exists(status_file):
             with open(status_file, 'rb') as f:
-                return pickle.load(f)
+                loaded_status = pickle.load(f)
+                print(f"Loaded {len(loaded_status)} jobs from {status_file}")
+                return loaded_status
+        else:
+            print(f"Job status file not found: {status_file}")
     except Exception as e:
         print(f"Error loading job status: {e}")
+        import traceback
+        traceback.print_exc()
     return {}
 
 def save_job_status():
     """Save job status to file"""
-    status_file = os.path.join(app.config['RESULTS_FOLDER'], 'job_status.pkl')
+    global job_status
+    status_file = os.path.abspath(os.path.join(app.config['RESULTS_FOLDER'], 'job_status.pkl'))
     try:
+        os.makedirs(os.path.dirname(status_file), exist_ok=True)
         with open(status_file, 'wb') as f:
             pickle.dump(job_status, f)
+        print(f"Job status saved to {status_file}")
     except Exception as e:
         print(f"Error saving job status: {e}")
+        print(f"Current working directory: {os.getcwd()}")
+        print(f"Target file: {status_file}")
+        import traceback
+        traceback.print_exc()
 
 # Load existing job status or create new dict
 job_status = load_job_status()
@@ -331,4 +344,5 @@ def serve_example_file(filename):
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5002))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    debug_mode = os.environ.get('FLASK_DEBUG', '0').lower() in ['1', 'true', 'yes']
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
