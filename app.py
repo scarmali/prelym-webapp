@@ -297,8 +297,22 @@ def get_results(job_id):
         return jsonify({'error': 'Job not completed yet'}), 400
 
     results_file = job_status[job_id].get('results_file')
-    if not results_file or not os.path.exists(results_file):
+    if not results_file:
+        print(f"No results_file in job_status for {job_id}")
         return jsonify({'error': 'Results file not found'}), 404
+
+    if not os.path.exists(results_file):
+        print(f"Results file does not exist: {results_file}")
+        print(f"Current working directory: {os.getcwd()}")
+        print(f"APP_ROOT_DIR: {APP_ROOT_DIR}")
+        # Try to find the file with APP_ROOT_DIR
+        alt_results_file = os.path.join(APP_ROOT_DIR, app.config['RESULTS_FOLDER'], f'{job_id}_results.xlsx')
+        if os.path.exists(alt_results_file):
+            print(f"Found results file at alternate location: {alt_results_file}")
+            results_file = alt_results_file
+        else:
+            print(f"Alternate results file also not found: {alt_results_file}")
+            return jsonify({'error': 'Results file not found'}), 404
 
     return send_file(results_file, as_attachment=True, download_name=f'prelym_results_{job_id}.xlsx')
 
@@ -311,8 +325,20 @@ def preview_results(job_id):
         return jsonify({'error': 'Job not completed yet'}), 400
 
     results_file = job_status[job_id].get('results_file')
-    if not results_file or not os.path.exists(results_file):
+    if not results_file:
+        print(f"No results_file in job_status for {job_id}")
         return jsonify({'error': 'Results file not found'}), 404
+
+    if not os.path.exists(results_file):
+        print(f"Results file does not exist: {results_file}")
+        # Try to find the file with APP_ROOT_DIR
+        alt_results_file = os.path.join(APP_ROOT_DIR, app.config['RESULTS_FOLDER'], f'{job_id}_results.xlsx')
+        if os.path.exists(alt_results_file):
+            print(f"Found results file at alternate location: {alt_results_file}")
+            results_file = alt_results_file
+        else:
+            print(f"Alternate results file also not found: {alt_results_file}")
+            return jsonify({'error': 'Results file not found'}), 404
 
     try:
         # Read the Excel file and convert to JSON for preview
