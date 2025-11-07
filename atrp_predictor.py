@@ -538,7 +538,7 @@ def pdb2charge(filename,filename2):
     line_no = search(filename2,['ATOM'])
     max_line = np.max(line_no)
     min_line = np.min(line_no)
-    data = pd.read_csv(filename2,skiprows=min_line-1,nrows = max_line-min_line,delimiter='\s+',header=None)
+    data = pd.read_csv(filename2,skiprows=min_line-1,nrows = max_line-min_line,delimiter=r'\s+',header=None)
     data = data.rename(columns={1:'Atom No.',2:'Atom',3:'Amino Group',4:"Residue",5:'X',6:'Y',7:'Z',8:'Charge',9:'Radius'})
 
     lys_data = data[data['Amino Group'] == 'LYS']
