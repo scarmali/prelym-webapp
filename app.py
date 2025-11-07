@@ -290,10 +290,10 @@ def upload_files():
 
 @app.route('/status/<job_id>')
 def get_job_status(job_id):
+    global job_status
     if job_id not in job_status:
         print(f"Job {job_id} not found in job_status. Available jobs: {list(job_status.keys())}")
         # Try to reload job status from file
-        global job_status
         job_status = load_job_status()
         if job_id not in job_status:
             print(f"Job {job_id} still not found after reload")
