@@ -130,10 +130,17 @@ def process_protein_analysis(job_id, pdb_file, hbond_file, charge_file, probe_ra
 
             # The original function creates 'Results.xlsx' in current directory
             results_file = os.path.join(APP_ROOT_DIR, app.config['RESULTS_FOLDER'], f'{job_id}_results.xlsx')
+            print(f"Moving Results.xlsx to: {results_file}")
+            print(f"Current working directory: {os.getcwd()}")
+            print(f"APP_ROOT_DIR: {APP_ROOT_DIR}")
+
             if os.path.exists('Results.xlsx'):
                 shutil.move('Results.xlsx', results_file)
                 job_status[job_id]['results_file'] = results_file
+                print(f"Successfully moved results file. Stored path: {results_file}")
             else:
+                print(f"Results.xlsx not found in current directory: {os.getcwd()}")
+                print(f"Directory contents: {os.listdir('.')}")
                 raise Exception("Results file was not generated")
 
             job_status[job_id]['status'] = 'completed'
