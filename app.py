@@ -312,8 +312,13 @@ def get_results(job_id):
             print(f"Job {job_id} still not found after reload")
             return jsonify({'error': 'Job not found'}), 404
 
+    # If job exists but not completed, try reloading status in case it completed recently
     if job_status[job_id]['status'] != 'completed':
-        return jsonify({'error': 'Job not completed yet'}), 400
+        print(f"Job {job_id} status is '{job_status[job_id]['status']}', reloading to check for updates")
+        job_status = load_job_status()
+        if job_id not in job_status or job_status[job_id]['status'] != 'completed':
+            print(f"Job {job_id} still not completed after reload. Current status: {job_status.get(job_id, {}).get('status', 'not found')}")
+            return jsonify({'error': 'Job not completed yet'}), 400
 
     results_file = job_status[job_id].get('results_file')
     if not results_file:
@@ -346,8 +351,13 @@ def preview_results(job_id):
             print(f"Job {job_id} still not found after reload")
             return jsonify({'error': 'Job not found'}), 404
 
+    # If job exists but not completed, try reloading status in case it completed recently
     if job_status[job_id]['status'] != 'completed':
-        return jsonify({'error': 'Job not completed yet'}), 400
+        print(f"Job {job_id} status is '{job_status[job_id]['status']}', reloading to check for updates")
+        job_status = load_job_status()
+        if job_id not in job_status or job_status[job_id]['status'] != 'completed':
+            print(f"Job {job_id} still not completed after reload. Current status: {job_status.get(job_id, {}).get('status', 'not found')}")
+            return jsonify({'error': 'Job not completed yet'}), 400
 
     results_file = job_status[job_id].get('results_file')
     if not results_file:
