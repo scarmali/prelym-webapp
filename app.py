@@ -303,8 +303,14 @@ def get_job_status(job_id):
 
 @app.route('/results/<job_id>')
 def get_results(job_id):
+    global job_status
     if job_id not in job_status:
-        return jsonify({'error': 'Job not found'}), 404
+        print(f"Job {job_id} not found in job_status. Available jobs: {list(job_status.keys())}")
+        # Try to reload job status from file
+        job_status = load_job_status()
+        if job_id not in job_status:
+            print(f"Job {job_id} still not found after reload")
+            return jsonify({'error': 'Job not found'}), 404
 
     if job_status[job_id]['status'] != 'completed':
         return jsonify({'error': 'Job not completed yet'}), 400
@@ -331,8 +337,14 @@ def get_results(job_id):
 
 @app.route('/preview/<job_id>')
 def preview_results(job_id):
+    global job_status
     if job_id not in job_status:
-        return jsonify({'error': 'Job not found'}), 404
+        print(f"Job {job_id} not found in job_status. Available jobs: {list(job_status.keys())}")
+        # Try to reload job status from file
+        job_status = load_job_status()
+        if job_id not in job_status:
+            print(f"Job {job_id} still not found after reload")
+            return jsonify({'error': 'Job not found'}), 404
 
     if job_status[job_id]['status'] != 'completed':
         return jsonify({'error': 'Job not completed yet'}), 400
