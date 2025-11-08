@@ -312,15 +312,146 @@
                         <h4 class="mb-0"><i class="fas fa-info-circle me-2"></i>Input File Preparation</h4>
                     </div>
                     <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
-                        <p class="lead">To execute PRELYM, three input files are necessary. This guide explains the step-by-step process for file preparation.</p>
+                        <p class="lead">To execute PRELYM, three input files are necessary. Choose between automated preparation or manual step-by-step process.</p>
                         <div class="alert alert-info">
-                            <h6 style="color: var(--primary-color);"><i class="fas fa-lightbulb me-2"></i>Before You Start</h6>
+                            <h6 style="color: var(--primary-color);"><i class="fas fa-lightbulb me-2"></i>Choose Your Method</h6>
                             <ul class="mb-0" style="color: var(--dark-color);">
-                                <li>Ensure you have access to the required web tools (all are free)</li>
+                                <li><strong>🤖 Automated:</strong> Enter protein name or PDB ID - we'll prepare all files automatically</li>
+                                <li><strong>📋 Manual:</strong> Follow the step-by-step guide below using web tools</li>
                                 <li>Use pH 8.0 for consistency with experimental validation studies</li>
-                                <li>Keep track of your file naming for organization</li>
                             </ul>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Automated File Preparation -->
+                <div class="card mb-4">
+                    <div class="card-header text-white" style="background: linear-gradient(135deg, #059669 0%, #16a34a 100%);">
+                        <h4 class="mb-0"><i class="fas fa-magic me-2"></i>🤖 Automated File Preparation</h4>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
+                        <p class="mb-4">Let PRELYM automatically prepare your files by searching for proteins or downloading specific PDB structures.</p>
+
+                        <div class="row">
+                            <div class="col-md-8 mx-auto">
+                                <form id="prepForm">
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>Preparation Method:</strong></label>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="inputType" id="proteinRadio" value="protein" checked>
+                                                    <label class="form-check-label" for="proteinRadio">
+                                                        <i class="fas fa-search me-1"></i> Search by protein name
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="inputType" id="pdbIdRadio" value="pdb_id">
+                                                    <label class="form-check-label" for="pdbIdRadio">
+                                                        <i class="fas fa-download me-1"></i> Use PDB ID
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="inputValue" class="form-label" id="inputLabel"><strong>Protein Name:</strong></label>
+                                        <input type="text" class="form-control" id="inputValue" placeholder="e.g., lysozyme, chymotrypsin" required>
+                                        <div class="form-text" id="inputHelp">Enter the protein name for database search</div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="phValue" class="form-label"><strong>pH:</strong></label>
+                                            <input type="number" class="form-control" id="phValue" value="8.0" step="0.1" min="1" max="14">
+                                            <div class="form-text">pH for protonation states</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="forcefield" class="form-label"><strong>Force Field:</strong></label>
+                                            <select class="form-select" id="forcefield">
+                                                <option value="AMBER" selected>AMBER</option>
+                                                <option value="CHARMM">CHARMM</option>
+                                                <option value="PARSE">PARSE</option>
+                                            </select>
+                                            <div class="form-text">Force field for charge assignment</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-success btn-lg" id="prepareBtn">
+                                            <i class="fas fa-magic me-2"></i>Prepare Files Automatically
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Progress Section -->
+                        <div id="prepProgress" style="display: none;" class="mt-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-cog fa-spin me-2"></i>Preparing Files...</h6>
+                                    <div class="progress mb-3">
+                                        <div class="progress-bar bg-success" id="progressBar" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                    <p class="mb-0" id="statusMessage">Starting preparation...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Results Section -->
+                        <div id="prepResults" style="display: none;" class="mt-4">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-check-circle me-2"></i>Files Prepared Successfully!</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-3">Your PRELYM input files are ready for download:</p>
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                                        <button class="btn btn-primary" id="downloadClean">
+                                            <i class="fas fa-cube me-2"></i>Clean PDB
+                                        </button>
+                                        <button class="btn btn-success" id="downloadHydrogen">
+                                            <i class="fas fa-link me-2"></i>H-bond File
+                                        </button>
+                                        <button class="btn btn-warning" id="downloadCharge">
+                                            <i class="fas fa-bolt me-2"></i>Charge File
+                                        </button>
+                                    </div>
+                                    <div class="mt-3">
+                                        <small class="text-muted">Files are ready to upload to PRELYM for analysis.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Error Section -->
+                        <div id="prepError" style="display: none;" class="mt-4">
+                            <div class="alert alert-danger">
+                                <h6><i class="fas fa-exclamation-triangle me-2"></i>Preparation Failed</h6>
+                                <p class="mb-0" id="errorMessage">An error occurred during file preparation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="text-center mb-4">
+                    <h5 style="color: var(--text-muted);">
+                        <span style="background: var(--light-gray); padding: 0 1rem;">OR</span>
+                    </h5>
+                </div>
+
+                <!-- Manual Preparation Guide Header -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0"><i class="fas fa-list-ol me-2"></i>📋 Manual Step-by-Step Guide</h4>
+                    </div>
+                    <div class="card-body" style="padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);">
+                        <p class="mb-0">Follow these steps to manually prepare your files using external web tools:</p>
                     </div>
                 </div>
 
@@ -572,6 +703,146 @@
                     document.body.removeChild(link);
                 }, index * 500); // Stagger downloads by 500ms
             });
+        }
+
+        // Automated preparation functionality
+        let currentJobId = null;
+        let statusInterval = null;
+
+        // Update form based on input type selection
+        document.querySelectorAll('input[name="inputType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const inputLabel = document.getElementById('inputLabel');
+                const inputValue = document.getElementById('inputValue');
+                const inputHelp = document.getElementById('inputHelp');
+
+                if (this.value === 'protein') {
+                    inputLabel.innerHTML = '<strong>Protein Name:</strong>';
+                    inputValue.placeholder = 'e.g., lysozyme, chymotrypsin';
+                    inputHelp.textContent = 'Enter the protein name for database search';
+                } else if (this.value === 'pdb_id') {
+                    inputLabel.innerHTML = '<strong>PDB ID:</strong>';
+                    inputValue.placeholder = 'e.g., 4CHA, 1LYZ';
+                    inputHelp.textContent = 'Enter the 4-character PDB ID';
+                }
+            });
+        });
+
+        // Handle form submission
+        document.getElementById('prepForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const inputType = document.querySelector('input[name="inputType"]:checked').value;
+            const inputValue = document.getElementById('inputValue').value.trim();
+            const ph = parseFloat(document.getElementById('phValue').value);
+            const forcefield = document.getElementById('forcefield').value;
+
+            if (!inputValue) {
+                alert('Please enter a protein name or PDB ID');
+                return;
+            }
+
+            // Hide any previous results/errors
+            document.getElementById('prepResults').style.display = 'none';
+            document.getElementById('prepError').style.display = 'none';
+
+            // Show progress
+            document.getElementById('prepProgress').style.display = 'block';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('statusMessage').textContent = 'Starting preparation...';
+
+            // Disable form
+            document.getElementById('prepareBtn').disabled = true;
+
+            try {
+                // Start preparation
+                const response = await fetch('/prepare-files', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        input_type: inputType,
+                        input_value: inputValue,
+                        ph: ph,
+                        forcefield: forcefield
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to start preparation');
+                }
+
+                currentJobId = data.job_id;
+
+                // Start polling for status
+                statusInterval = setInterval(checkStatus, 2000);
+
+            } catch (error) {
+                showError(error.message);
+                document.getElementById('prepareBtn').disabled = false;
+                document.getElementById('prepProgress').style.display = 'none';
+            }
+        });
+
+        async function checkStatus() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`/prepare-status/${currentJobId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to get status');
+                }
+
+                // Update progress
+                document.getElementById('progressBar').style.width = `${data.progress || 0}%`;
+                document.getElementById('statusMessage').textContent = data.message || 'Processing...';
+
+                if (data.status === 'completed') {
+                    clearInterval(statusInterval);
+                    showSuccess();
+                } else if (data.status === 'failed') {
+                    clearInterval(statusInterval);
+                    showError(data.message || 'Preparation failed');
+                }
+
+            } catch (error) {
+                clearInterval(statusInterval);
+                showError('Failed to check status: ' + error.message);
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('prepProgress').style.display = 'none';
+            document.getElementById('prepResults').style.display = 'block';
+            document.getElementById('prepareBtn').disabled = false;
+
+            // Set up download buttons
+            document.getElementById('downloadClean').onclick = () => downloadFile('clean');
+            document.getElementById('downloadHydrogen').onclick = () => downloadFile('hydrogen');
+            document.getElementById('downloadCharge').onclick = () => downloadFile('charge');
+        }
+
+        function showError(message) {
+            document.getElementById('prepProgress').style.display = 'none';
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('prepError').style.display = 'block';
+            document.getElementById('prepareBtn').disabled = false;
+        }
+
+        function downloadFile(fileType) {
+            if (!currentJobId) return;
+
+            const link = document.createElement('a');
+            link.href = `/prepare-download/${currentJobId}/${fileType}`;
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>

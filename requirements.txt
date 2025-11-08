@@ -10,6 +10,10 @@ pandas>=1.5.0
 biopython>=1.80
 biopandas>=0.4.0
 
+# PRELYM preparation agent dependencies
+pdbfixer>=1.9
+openmm>=8.0
+
 # Molecular analysis dependencies
 freesasa>=2.1.0
 MDAnalysis>=2.4.0

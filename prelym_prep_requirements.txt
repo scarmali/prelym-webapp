@@ -1,0 +1,11 @@
+# Requirements for PRELYM Preparation Agent
+# Install with: pip install -r prelym_prep_requirements.txt
+
+# Core dependencies
+biopython>=1.80
+pdbfixer>=1.9
+openmm>=8.0
+
+# Optional but recommended external tools:
+# - reduce (MolProbity suite): conda install -c conda-forge reduce
+# - pdb2pqr: conda install -c conda-forge pdb2pqr

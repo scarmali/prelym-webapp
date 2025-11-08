@@ -22,6 +22,9 @@ from atrp_predictor import (
     search, pdb2charge, final_data_table, decision_tree
 )
 
+# Import the PRELYM preparation agent
+from prelym_prep_agent import PrelymPrepAgent
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -405,6 +408,172 @@ def serve_example_file(filename):
             return jsonify({'error': 'File not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# Store preparation job status
+prep_job_status = {}
+
+def process_preparation(job_id, input_type, input_value, ph, forcefield, output_dir):
+    """Background task to process file preparation using PRELYM preparation agent"""
+    try:
+        prep_job_status[job_id]['status'] = 'processing'
+        prep_job_status[job_id]['progress'] = 10
+        prep_job_status[job_id]['message'] = 'Initializing preparation agent...'
+
+        # Initialize the preparation agent
+        agent = PrelymPrepAgent()
+
+        prep_job_status[job_id]['progress'] = 20
+        prep_job_status[job_id]['message'] = 'Checking system dependencies...'
+
+        # Check dependencies availability
+        tools = agent.check_dependencies()
+        if not tools['pdb2pqr']:
+            raise Exception("pdb2pqr is required but not found. Please install it via conda or from pdb2pqr.readthedocs.io")
+
+        prep_job_status[job_id]['progress'] = 30
+
+        # Get or download PDB file
+        pdb_file = None
+        if input_type == 'protein':
+            prep_job_status[job_id]['message'] = f'Searching for protein: {input_value}'
+            pdb_id = agent.search_protein(input_value)
+            if not pdb_id:
+                raise Exception(f"No PDB structures found for protein: {input_value}")
+            prep_job_status[job_id]['message'] = f'Found PDB ID: {pdb_id}. Downloading...'
+            pdb_file = agent.download_pdb(pdb_id)
+        elif input_type == 'pdb_id':
+            prep_job_status[job_id]['message'] = f'Downloading PDB ID: {input_value}'
+            pdb_file = agent.download_pdb(input_value)
+        elif input_type == 'pdb_file':
+            pdb_file = input_value
+            prep_job_status[job_id]['message'] = f'Using uploaded file: {os.path.basename(pdb_file)}'
+
+        prep_job_status[job_id]['progress'] = 50
+        prep_job_status[job_id]['message'] = 'Cleaning PDB structure...'
+
+        # Step 1: Clean PDB
+        clean_pdb = agent.clean_pdb(pdb_file)
+
+        prep_job_status[job_id]['progress'] = 70
+        prep_job_status[job_id]['message'] = 'Adding hydrogens...'
+
+        # Step 2: Add hydrogens
+        h_pdb = agent.add_hydrogens(clean_pdb, ph=ph)
+
+        prep_job_status[job_id]['progress'] = 85
+        prep_job_status[job_id]['message'] = 'Generating charges...'
+
+        # Step 3: Generate charges
+        pqr_file = agent.generate_charges(clean_pdb, forcefield=forcefield, ph=ph)
+
+        prep_job_status[job_id]['progress'] = 95
+        prep_job_status[job_id]['message'] = 'Validating outputs...'
+
+        # Validate outputs
+        if not agent.validate_outputs(clean_pdb, h_pdb, pqr_file):
+            raise Exception("Output validation failed. Files may not meet PRELYM requirements.")
+
+        prep_job_status[job_id]['status'] = 'completed'
+        prep_job_status[job_id]['progress'] = 100
+        prep_job_status[job_id]['message'] = 'File preparation completed successfully!'
+        prep_job_status[job_id]['files'] = {
+            'clean_pdb': clean_pdb,
+            'h_pdb': h_pdb,
+            'pqr_file': pqr_file
+        }
+
+        # Cleanup temporary files
+        agent.cleanup()
+
+    except Exception as e:
+        prep_job_status[job_id]['status'] = 'failed'
+        prep_job_status[job_id]['message'] = f'Error: {str(e)}'
+        print(f"Preparation failed for job {job_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+@app.route('/prepare-files', methods=['POST'])
+def prepare_files():
+    """Start automated file preparation using PRELYM preparation agent"""
+    try:
+        data = request.get_json()
+
+        input_type = data.get('input_type')  # 'protein', 'pdb_id', or 'pdb_file'
+        input_value = data.get('input_value')
+        ph = float(data.get('ph', 8.0))
+        forcefield = data.get('forcefield', 'AMBER')
+
+        if not input_type or not input_value:
+            return jsonify({'error': 'input_type and input_value are required'}), 400
+
+        # Generate unique job ID
+        job_id = str(uuid.uuid4())
+
+        # Initialize job status
+        prep_job_status[job_id] = {
+            'status': 'queued',
+            'progress': 0,
+            'message': 'Job queued for processing...',
+            'created_at': datetime.now().isoformat(),
+            'input_type': input_type,
+            'input_value': input_value,
+            'ph': ph,
+            'forcefield': forcefield
+        }
+
+        # Create output directory
+        output_dir = os.path.join(app.config['RESULTS_FOLDER'], job_id)
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Start background preparation task
+        thread = Thread(target=process_preparation,
+                       args=(job_id, input_type, input_value, ph, forcefield, output_dir))
+        thread.start()
+
+        return jsonify({
+            'job_id': job_id,
+            'status': 'queued',
+            'message': 'File preparation started'
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/prepare-status/<job_id>')
+def get_preparation_status(job_id):
+    """Get status of file preparation job"""
+    if job_id not in prep_job_status:
+        return jsonify({'error': 'Job not found'}), 404
+
+    return jsonify(prep_job_status[job_id])
+
+@app.route('/prepare-download/<job_id>/<file_type>')
+def download_prepared_file(job_id, file_type):
+    """Download prepared files"""
+    if job_id not in prep_job_status:
+        return jsonify({'error': 'Job not found'}), 404
+
+    job = prep_job_status[job_id]
+    if job['status'] != 'completed':
+        return jsonify({'error': 'Job not completed'}), 400
+
+    if 'files' not in job:
+        return jsonify({'error': 'No files available'}), 404
+
+    file_map = {
+        'clean': job['files']['clean_pdb'],
+        'hydrogen': job['files']['h_pdb'],
+        'charge': job['files']['pqr_file']
+    }
+
+    if file_type not in file_map:
+        return jsonify({'error': 'Invalid file type'}), 400
+
+    file_path = file_map[file_type]
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'File not found'}), 404
+
+    return send_file(file_path, as_attachment=True, download_name=os.path.basename(file_path))
 
 if __name__ == '__main__':
     import os
