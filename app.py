@@ -22,8 +22,13 @@ from atrp_predictor import (
     search, pdb2charge, final_data_table, decision_tree
 )
 
-# Import the PRELYM preparation agent
-from prelym_prep_agent import PrelymPrepAgent
+# Import the PRELYM preparation agent (optional)
+try:
+    from prelym_prep_agent import PrelymPrepAgent
+    PREP_AGENT_AVAILABLE = True
+except ImportError:
+    PREP_AGENT_AVAILABLE = False
+    print("Warning: PRELYM preparation agent not available (requires pdbfixer/openmm)")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -168,7 +173,7 @@ def index():
 
 @app.route('/prepare')
 def prepare():
-    return render_template('prepare.html')
+    return render_template('prepare.html', prep_agent_available=PREP_AGENT_AVAILABLE)
 
 @app.route('/about')
 def about():
@@ -495,6 +500,9 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
 @app.route('/prepare-files', methods=['POST'])
 def prepare_files():
     """Start automated file preparation using PRELYM preparation agent"""
+    if not PREP_AGENT_AVAILABLE:
+        return jsonify({'error': 'PRELYM preparation agent not available (requires pdbfixer/openmm)'}), 503
+
     try:
         data = request.get_json()
 
