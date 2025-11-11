@@ -10,9 +10,9 @@ pandas>=1.5.0
 biopython>=1.80
 biopandas>=0.4.0
 
-# PRELYM preparation agent dependencies (optional - only works on Python < 3.13)
-# pdbfixer>=1.8
-# openmm>=7.7
+# PRELYM preparation agent dependencies
+pdbfixer>=1.8
+openmm>=7.7
 
 # Molecular analysis dependencies
 freesasa>=2.1.0
