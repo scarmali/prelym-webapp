@@ -422,8 +422,33 @@ def serve_example_file(filename):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Store preparation job status
+# Store preparation job status with persistent storage
 prep_job_status = {}
+
+def load_prep_job_status():
+    """Load preparation job status from file"""
+    global prep_job_status
+    status_file = os.path.join(APP_ROOT_DIR, app.config['RESULTS_FOLDER'], 'prep_job_status.pkl')
+    try:
+        if os.path.exists(status_file):
+            with open(status_file, 'rb') as f:
+                prep_job_status = pickle.load(f)
+    except Exception as e:
+        print(f"Error loading prep job status: {e}")
+        prep_job_status = {}
+
+def save_prep_job_status():
+    """Save preparation job status to file"""
+    status_file = os.path.join(APP_ROOT_DIR, app.config['RESULTS_FOLDER'], 'prep_job_status.pkl')
+    try:
+        with open(status_file, 'wb') as f:
+            pickle.dump(prep_job_status, f)
+        print(f"Prep job status saved to {status_file}")
+    except Exception as e:
+        print(f"Error saving prep job status: {e}")
+
+# Load existing preparation job status on startup
+load_prep_job_status()
 
 def process_preparation(job_id, input_type, input_value, ph, forcefield, output_dir):
     """Background task to process file preparation using PRELYM preparation agent"""
@@ -440,8 +465,17 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
 
         # Check dependencies availability
         tools = agent.check_dependencies()
-        if not tools['pdb2pqr']:
-            raise Exception("pdb2pqr is required but not found. Please install it via conda or from pdb2pqr.readthedocs.io")
+
+        # Log which agent type is being used
+        if PREP_AGENT_TYPE == "basic":
+            prep_job_status[job_id]['message'] = 'Using basic preparation agent (BioPython only)...'
+        elif not tools.get('pdb2pqr', False):
+            prep_job_status[job_id]['message'] = 'Warning: Advanced tools not available, using basic preparation...'
+
+        print(f"[PRELYM Prep] Agent type: {PREP_AGENT_TYPE}")
+        print(f"[PRELYM Prep] Available tools: {tools}")
+
+        # Don't fail if advanced tools are missing - the basic agent can still work
 
         prep_job_status[job_id]['progress'] = 30
 
@@ -541,6 +575,9 @@ def prepare_files():
         output_dir = os.path.join(app.config['RESULTS_FOLDER'], job_id)
         os.makedirs(output_dir, exist_ok=True)
 
+        # Save initial job status
+        save_prep_job_status()
+
         # Start background preparation task
         thread = Thread(target=process_preparation,
                        args=(job_id, input_type, input_value, ph, forcefield, output_dir))
@@ -558,8 +595,13 @@ def prepare_files():
 @app.route('/prepare-status/<job_id>')
 def get_preparation_status(job_id):
     """Get status of file preparation job"""
+    global prep_job_status
     if job_id not in prep_job_status:
-        return jsonify({'error': 'Job not found'}), 404
+        print(f"Prep job {job_id} not found. Available jobs: {list(prep_job_status.keys())}")
+        load_prep_job_status()
+        if job_id not in prep_job_status:
+            print(f"Prep job {job_id} still not found after reload")
+            return jsonify({'error': 'Job not found'}), 404
 
     return jsonify(prep_job_status[job_id])
 

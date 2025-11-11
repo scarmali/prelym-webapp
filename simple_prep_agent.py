@@ -86,6 +86,15 @@ def create_basic_files(pdb_id: str, output_dir: Path):
 class SimplePrepAgent:
     """Basic preparation agent compatible with Python 3.13"""
 
+    def search_protein(self, protein_name: str):
+        """Search for protein and return PDB ID"""
+        return search_protein(protein_name)
+
+    def download_pdb(self, pdb_id: str, output_dir: Path = Path(".")):
+        """Download PDB file"""
+        pdb_file = output_dir / f"{pdb_id}.pdb"
+        return download_pdb(pdb_id, pdb_file)
+
     def prepare_from_protein(self, protein_name: str, output_dir: Path):
         pdb_id = search_protein(protein_name)
         if not pdb_id:
