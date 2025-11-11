@@ -22,13 +22,21 @@ from atrp_predictor import (
     search, pdb2charge, final_data_table, decision_tree
 )
 
-# Import the PRELYM preparation agent (optional)
+# Import the PRELYM preparation agent (with fallback)
 try:
     from prelym_prep_agent import PrelymPrepAgent
     PREP_AGENT_AVAILABLE = True
+    PREP_AGENT_TYPE = "full"
 except ImportError:
-    PREP_AGENT_AVAILABLE = False
-    print("Warning: PRELYM preparation agent not available (requires pdbfixer/openmm)")
+    try:
+        from simple_prep_agent import SimplePrepAgent as PrelymPrepAgent
+        PREP_AGENT_AVAILABLE = True
+        PREP_AGENT_TYPE = "basic"
+        print("Using basic preparation agent (no pdbfixer/openmm)")
+    except ImportError:
+        PREP_AGENT_AVAILABLE = False
+        PREP_AGENT_TYPE = "none"
+        print("Warning: No preparation agent available")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
