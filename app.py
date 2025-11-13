@@ -487,11 +487,17 @@ def save_prep_job_status():
     """Save preparation job status to file"""
     status_file = os.path.join(APP_ROOT_DIR, app.config['RESULTS_FOLDER'], 'prep_job_status.pkl')
     try:
+        # Ensure directory exists
+        status_dir = os.path.dirname(status_file)
+        os.makedirs(status_dir, exist_ok=True)
+
         with open(status_file, 'wb') as f:
             pickle.dump(prep_job_status, f)
-        print(f"Prep job status saved to {status_file}")
+        print(f"[PRELYM Status] Prep job status saved to {status_file} with {len(prep_job_status)} jobs")
     except Exception as e:
         print(f"Error saving prep job status: {e}")
+        import traceback
+        traceback.print_exc()
 
 # Load existing preparation job status on startup
 load_prep_job_status()
@@ -783,6 +789,8 @@ def prepare_files():
 
         # Save initial job status
         save_prep_job_status()
+        print(f"[PRELYM Prep] Created job {job_id} with status: {prep_job_status[job_id]['status']}")
+        print(f"[PRELYM Prep] Total jobs in memory: {len(prep_job_status)}")
 
         # Start background preparation task
         thread = Thread(target=process_preparation,
@@ -802,9 +810,12 @@ def prepare_files():
 def get_preparation_status(job_id):
     """Get status of file preparation job"""
     global prep_job_status
+    print(f"[PRELYM Status] Looking for job {job_id}, current jobs in memory: {list(prep_job_status.keys())}")
     if job_id not in prep_job_status:
         print(f"Prep job {job_id} not found. Available jobs: {list(prep_job_status.keys())}")
+        print(f"[PRELYM Status] Attempting to reload from disk...")
         load_prep_job_status()
+        print(f"[PRELYM Status] After reload, jobs in memory: {list(prep_job_status.keys())}")
         if job_id not in prep_job_status:
             print(f"Prep job {job_id} still not found after reload")
             return jsonify({'error': 'Job not found'}), 404
