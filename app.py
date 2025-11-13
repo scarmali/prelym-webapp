@@ -27,27 +27,38 @@ from atrp_predictor import (
 def test_prep_agent_dependencies():
     """Test if the full agent's dependencies are actually available"""
     try:
+        # Test if pdb2pqr is available by direct import
+        import pdb2pqr
+        return True
+    except ImportError:
+        pass
+
+    # Also test subprocess approach as backup
+    try:
         import subprocess
         import sys
-        # Test if pdb2pqr is available
         result = subprocess.run([sys.executable, '-c', 'import pdb2pqr'],
                               capture_output=True, timeout=5)
         if result.returncode == 0:
             return True
     except:
         pass
+
     return False
 
+# Temporarily disable full agent to force simple agent usage
+# This ensures reliable functionality in production environments
 try:
-    from prelym_prep_agent import PrelymPrepAgent
-    # Test if dependencies are actually working
-    if test_prep_agent_dependencies():
-        PREP_AGENT_AVAILABLE = True
-        PREP_AGENT_TYPE = "full"
-        print("Using full preparation agent (pdbfixer/openmm)")
-    else:
-        # Fall back to simple agent even if full agent imports
-        raise ImportError("Full agent dependencies not available")
+    # Force fallback to simple agent for now
+    raise ImportError("Forcing simple agent for production reliability")
+    # Commented out full agent until dependency detection is more robust:
+    # from prelym_prep_agent import PrelymPrepAgent
+    # if test_prep_agent_dependencies():
+    #     PREP_AGENT_AVAILABLE = True
+    #     PREP_AGENT_TYPE = "full"
+    #     print("Using full preparation agent (pdbfixer/openmm)")
+    # else:
+    #     raise ImportError("Full agent dependencies not available")
 except ImportError:
     try:
         from simple_prep_agent import SimplePrepAgent as PrelymPrepAgent
