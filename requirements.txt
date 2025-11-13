@@ -10,7 +10,8 @@ pandas>=1.5.0
 biopython>=1.80
 biopandas>=0.4.0
 
-# PRELYM preparation agent dependencies (conda-only packages, using fallback agent)
+# PRELYM preparation agent dependencies
+pdb2pqr>=3.6.2  # Now available via pip - enables full preparation agent
 # pdbfixer>=1.8  # Only available via conda, not pip
 # openmm>=7.7     # Only available via conda, not pip
 

@@ -50,8 +50,18 @@ def test_prep_agent_dependencies():
 # This ensures reliable functionality in production environments
 IMPORT_ERROR_MSG = ""
 try:
-    # Force fallback to simple agent for now
-    raise ImportError("Forcing simple agent for production reliability")
+    from prelym_prep_agent import PrelymPrepAgent
+    # Test if it has the required dependencies
+    test_agent = PrelymPrepAgent()
+    deps = test_agent.check_dependencies()
+    if deps.get('pdb2pqr'):  # pdb2pqr is the critical dependency
+        PREP_AGENT_AVAILABLE = True
+        PREP_AGENT_TYPE = "full"
+        print(f"Using full preparation agent with pdb2pqr: {deps['pdb2pqr']}")
+        if not deps.get('reduce'):
+            print("Note: reduce not available, will use PDBFixer fallback for hydrogen placement")
+    else:
+        raise ImportError("pdb2pqr not available")
     # Commented out full agent until dependency detection is more robust:
     # from prelym_prep_agent import PrelymPrepAgent
     # if test_prep_agent_dependencies():
@@ -612,13 +622,46 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
             if hasattr(agent, 'cleanup'):
                 agent.cleanup()
 
-        prep_job_status[job_id]['status'] = 'completed'
+        # Verify all files exist before marking as completed
+        files_ready = True
+        for file_type, file_path in prep_job_status[job_id]['files'].items():
+            if not os.path.exists(file_path):
+                print(f"[PRELYM Prep] Warning: File {file_path} not found")
+                files_ready = False
+                break
+            elif os.path.getsize(file_path) == 0:
+                print(f"[PRELYM Prep] Warning: File {file_path} is empty")
+                files_ready = False
+                break
+
+        if not files_ready:
+            # Add a small delay and try again
+            import time
+            time.sleep(2)
+            files_ready = True
+            for file_type, file_path in prep_job_status[job_id]['files'].items():
+                if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+                    files_ready = False
+                    break
+
+        prep_job_status[job_id]['status'] = 'completed' if files_ready else 'failed'
         prep_job_status[job_id]['progress'] = 100
-        prep_job_status[job_id]['message'] = 'File preparation completed successfully!'
+        if files_ready:
+            prep_job_status[job_id]['message'] = 'File preparation completed successfully!'
+        else:
+            prep_job_status[job_id]['message'] = 'File preparation completed but some files are missing or empty'
         save_prep_job_status()
 
-        print(f"[PRELYM Prep] Job {job_id} completed successfully")
+        print(f"[PRELYM Prep] Job {job_id} completed {'successfully' if files_ready else 'with errors'}")
         print(f"[PRELYM Prep] Files created: {prep_job_status[job_id]['files']}")
+
+        # Verify file contents are non-empty
+        for file_type, file_path in prep_job_status[job_id]['files'].items():
+            if os.path.exists(file_path):
+                size = os.path.getsize(file_path)
+                print(f"[PRELYM Prep] {file_type}: {file_path} ({size} bytes)")
+            else:
+                print(f"[PRELYM Prep] {file_type}: {file_path} (NOT FOUND)")
 
     except Exception as e:
         prep_job_status[job_id]['status'] = 'failed'
@@ -698,12 +741,16 @@ def get_preparation_status(job_id):
 @app.route('/prepare-download/<job_id>/<file_type>')
 def download_prepared_file(job_id, file_type):
     """Download prepared files"""
+    global prep_job_status
     if job_id not in prep_job_status:
-        return jsonify({'error': 'Job not found'}), 404
+        print(f"Prep job {job_id} not found. Available jobs: {list(prep_job_status.keys())}")
+        load_prep_job_status()
+        if job_id not in prep_job_status:
+            return jsonify({'error': 'Job not found'}), 404
 
     job = prep_job_status[job_id]
     if job['status'] != 'completed':
-        return jsonify({'error': 'Job not completed'}), 400
+        return jsonify({'error': f'Job not completed (status: {job["status"]})'}), 400
 
     if 'files' not in job:
         return jsonify({'error': 'No files available'}), 404
@@ -719,7 +766,10 @@ def download_prepared_file(job_id, file_type):
 
     file_path = file_map[file_type]
     if not os.path.exists(file_path):
-        return jsonify({'error': 'File not found'}), 404
+        return jsonify({'error': f'File not found: {file_path}'}), 404
+
+    if os.path.getsize(file_path) == 0:
+        return jsonify({'error': f'File is empty: {file_path}'}), 404
 
     return send_file(file_path, as_attachment=True, download_name=os.path.basename(file_path))
 
