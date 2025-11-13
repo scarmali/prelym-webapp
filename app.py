@@ -16,6 +16,8 @@ from threading import Thread
 import time
 from datetime import datetime
 from pathlib import Path
+import signal
+import sys
 
 # Import ALL the original functions to maintain exact functionality
 from atrp_predictor import (
@@ -494,6 +496,40 @@ def save_prep_job_status():
 # Load existing preparation job status on startup
 load_prep_job_status()
 
+class TimeoutException(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutException("Operation timed out")
+
+def with_timeout(timeout_seconds=300):
+    """Decorator to add timeout to functions (default 5 minutes)"""
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            # Set up signal handler for timeout
+            old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(timeout_seconds)
+
+            try:
+                result = func(*args, **kwargs)
+                signal.alarm(0)  # Cancel the alarm
+                return result
+            except TimeoutException:
+                # Handle timeout
+                job_id = args[0] if args else None
+                if job_id and job_id in prep_job_status:
+                    prep_job_status[job_id]['status'] = 'failed'
+                    prep_job_status[job_id]['message'] = f'Operation timed out after {timeout_seconds} seconds'
+                    save_prep_job_status()
+                print(f"[PRELYM Prep] Job {job_id} timed out after {timeout_seconds} seconds")
+                raise
+            finally:
+                signal.signal(signal.SIGALRM, old_handler)  # Restore original handler
+                signal.alarm(0)  # Cancel any remaining alarm
+        return wrapper
+    return decorator
+
+@with_timeout(timeout_seconds=300)  # 5 minute timeout
 def process_preparation(job_id, input_type, input_value, ph, forcefield, output_dir):
     """Background task to process file preparation using PRELYM preparation agent"""
     global prep_job_status
@@ -563,64 +599,101 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
 
         else:
             # Use the full PrelymPrepAgent interface
-            # Get or download PDB file
-            pdb_file = None
-            if input_type == 'protein':
-                prep_job_status[job_id]['message'] = f'Searching for protein: {input_value}'
+            # Check if agent actually has the individual methods (full agent)
+            if hasattr(agent, 'clean_pdb') and hasattr(agent, 'add_hydrogens') and hasattr(agent, 'generate_charges'):
+                # Full agent with individual step methods
+                # Get or download PDB file
+                pdb_file = None
+                if input_type == 'protein':
+                    prep_job_status[job_id]['message'] = f'Searching for protein: {input_value}'
+                    save_prep_job_status()
+                    pdb_id = agent.search_protein(input_value)
+                    if not pdb_id:
+                        raise Exception(f"No PDB structures found for protein: {input_value}")
+                    prep_job_status[job_id]['message'] = f'Found PDB ID: {pdb_id}. Downloading...'
+                    save_prep_job_status()
+                    pdb_file = agent.download_pdb(pdb_id)
+                elif input_type == 'pdb_id':
+                    prep_job_status[job_id]['message'] = f'Downloading PDB ID: {input_value}'
+                    save_prep_job_status()
+                    pdb_file = agent.download_pdb(input_value)
+                elif input_type == 'pdb_file':
+                    pdb_file = input_value
+                    prep_job_status[job_id]['message'] = f'Using uploaded file: {os.path.basename(pdb_file)}'
+                    save_prep_job_status()
+
+                prep_job_status[job_id]['progress'] = 50
+                prep_job_status[job_id]['message'] = 'Cleaning PDB structure...'
                 save_prep_job_status()
-                pdb_id = agent.search_protein(input_value)
-                if not pdb_id:
-                    raise Exception(f"No PDB structures found for protein: {input_value}")
-                prep_job_status[job_id]['message'] = f'Found PDB ID: {pdb_id}. Downloading...'
-                save_prep_job_status()
-                pdb_file = agent.download_pdb(pdb_id)
-            elif input_type == 'pdb_id':
-                prep_job_status[job_id]['message'] = f'Downloading PDB ID: {input_value}'
-                save_prep_job_status()
-                pdb_file = agent.download_pdb(input_value)
-            elif input_type == 'pdb_file':
-                pdb_file = input_value
-                prep_job_status[job_id]['message'] = f'Using uploaded file: {os.path.basename(pdb_file)}'
+
+                # Step 1: Clean PDB
+                clean_pdb = agent.clean_pdb(pdb_file)
+
+                prep_job_status[job_id]['progress'] = 70
+                prep_job_status[job_id]['message'] = 'Adding hydrogens...'
                 save_prep_job_status()
 
-            prep_job_status[job_id]['progress'] = 50
-            prep_job_status[job_id]['message'] = 'Cleaning PDB structure...'
-            save_prep_job_status()
+                # Step 2: Add hydrogens
+                h_pdb = agent.add_hydrogens(clean_pdb, ph=ph)
 
-            # Step 1: Clean PDB
-            clean_pdb = agent.clean_pdb(pdb_file)
+                prep_job_status[job_id]['progress'] = 85
+                prep_job_status[job_id]['message'] = 'Generating charges...'
+                save_prep_job_status()
 
-            prep_job_status[job_id]['progress'] = 70
-            prep_job_status[job_id]['message'] = 'Adding hydrogens...'
-            save_prep_job_status()
+                # Step 3: Generate charges
+                pqr_file = agent.generate_charges(clean_pdb, forcefield=forcefield, ph=ph)
 
-            # Step 2: Add hydrogens
-            h_pdb = agent.add_hydrogens(clean_pdb, ph=ph)
+                prep_job_status[job_id]['progress'] = 95
+                prep_job_status[job_id]['message'] = 'Validating outputs...'
+                save_prep_job_status()
 
-            prep_job_status[job_id]['progress'] = 85
-            prep_job_status[job_id]['message'] = 'Generating charges...'
-            save_prep_job_status()
+                # Validate outputs
+                if hasattr(agent, 'validate_outputs') and not agent.validate_outputs(clean_pdb, h_pdb, pqr_file):
+                    raise Exception("Output validation failed. Files may not meet PRELYM requirements.")
 
-            # Step 3: Generate charges
-            pqr_file = agent.generate_charges(clean_pdb, forcefield=forcefield, ph=ph)
+                prep_job_status[job_id]['files'] = {
+                    'clean_pdb': clean_pdb,
+                    'h_pdb': h_pdb,
+                    'pqr_file': pqr_file
+                }
 
-            prep_job_status[job_id]['progress'] = 95
-            prep_job_status[job_id]['message'] = 'Validating outputs...'
-            save_prep_job_status()
+                # Cleanup temporary files
+                if hasattr(agent, 'cleanup'):
+                    agent.cleanup()
+            else:
+                # Fallback: Agent doesn't have individual methods, use unified approach like basic agent
+                prep_job_status[job_id]['message'] = 'Using unified preparation method...'
+                save_prep_job_status()
 
-            # Validate outputs
-            if not agent.validate_outputs(clean_pdb, h_pdb, pqr_file):
-                raise Exception("Output validation failed. Files may not meet PRELYM requirements.")
+                if input_type == 'protein':
+                    prep_job_status[job_id]['progress'] = 40
+                    prep_job_status[job_id]['message'] = f'Searching for protein: {input_value}'
+                    save_prep_job_status()
+                    files = agent.prepare_from_protein(input_value, Path(output_dir))
+                elif input_type == 'pdb_id':
+                    prep_job_status[job_id]['progress'] = 40
+                    prep_job_status[job_id]['message'] = f'Preparing files for PDB ID: {input_value}'
+                    save_prep_job_status()
+                    files = agent.prepare_from_pdb_id(input_value, Path(output_dir))
+                elif input_type == 'pdb_file':
+                    # For uploaded files, copy to output dir and process
+                    prep_job_status[job_id]['progress'] = 40
+                    prep_job_status[job_id]['message'] = f'Processing uploaded file: {os.path.basename(input_value)}'
+                    save_prep_job_status()
+                    # Extract PDB ID from filename or use generic name
+                    pdb_name = Path(input_value).stem
+                    files = agent.prepare_from_pdb_id(pdb_name, Path(output_dir))
 
-            prep_job_status[job_id]['files'] = {
-                'clean_pdb': clean_pdb,
-                'h_pdb': h_pdb,
-                'pqr_file': pqr_file
-            }
+                prep_job_status[job_id]['progress'] = 90
+                prep_job_status[job_id]['message'] = 'Preparation completed!'
+                save_prep_job_status()
 
-            # Cleanup temporary files
-            if hasattr(agent, 'cleanup'):
-                agent.cleanup()
+                # Map output to expected format (same as basic agent)
+                prep_job_status[job_id]['files'] = {
+                    'clean_pdb': str(files['clean_pdb']),
+                    'h_pdb': str(files['hbond_file']),  # H-bond file serves as hydrogen-added file
+                    'pqr_file': str(files['pqr_file'])
+                }
 
         # Verify all files exist before marking as completed
         files_ready = True
