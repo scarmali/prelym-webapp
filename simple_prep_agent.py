@@ -57,6 +57,45 @@ def clean_pdb(input_pdb: Path, output_pdb: Path):
 
     return output_pdb
 
+def create_basic_pqr(pdb_file: Path) -> str:
+    """Convert PDB to basic PQR format with placeholder charges and radii"""
+    content = pdb_file.read_text()
+    lines = content.split('\n')
+
+    # Basic charge/radius lookup for common atoms
+    atom_params = {
+        'C': (0.0, 1.70),   # Carbon: neutral charge, 1.7Å radius
+        'N': (-0.3, 1.55),  # Nitrogen: slightly negative
+        'O': (-0.4, 1.52),  # Oxygen: negative
+        'S': (-0.1, 1.80),  # Sulfur: slightly negative
+        'H': (0.0, 1.20),   # Hydrogen: neutral
+        'P': (0.2, 1.80),   # Phosphorus: slightly positive
+    }
+
+    pqr_lines = [
+        "REMARK   WARNING: Basic pseudo-PQR with placeholder charges/radii",
+        "REMARK   For accurate analysis, use proper PDB2PQR with force field",
+        "REMARK   These values are approximate and may not be suitable for rigorous calculations"
+    ]
+
+    for line in lines:
+        if line.startswith('ATOM') or line.startswith('HETATM'):
+            # Parse PDB ATOM line
+            atom_name = line[12:16].strip()
+            element = atom_name[0]  # First character is usually the element
+
+            # Get default charge/radius or use carbon defaults
+            charge, radius = atom_params.get(element, (0.0, 1.70))
+
+            # Convert PDB line to PQR format
+            # PQR format: ATOM serial name resName chainID resSeq x y z charge radius
+            pqr_line = f"{line[:30]}{line[30:54]}{charge:8.4f}{radius:7.4f}"
+            pqr_lines.append(pqr_line)
+        elif line.startswith(('REMARK', 'HEADER', 'TITLE', 'END')):
+            pqr_lines.append(line)
+
+    return '\n'.join(pqr_lines)
+
 def create_basic_files(pdb_id: str, output_dir: Path):
     """Create the three basic files needed for PRELYM"""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -69,13 +108,17 @@ def create_basic_files(pdb_id: str, output_dir: Path):
     clean_pdb_file = output_dir / f"{pdb_id}_clean.pdb"
     clean_pdb(original_pdb, clean_pdb_file)
 
-    # For H-bond file, copy clean file (basic fallback)
+    # For H-bond file, copy clean file with warning header
     hbond_file = output_dir / f"{pdb_id}FH.pdb"
-    hbond_file.write_text(clean_pdb_file.read_text())
+    warning_header = "REMARK   WARNING: Basic preparation agent - no hydrogen optimization performed\n"
+    warning_header += "REMARK   For proper PRELYM analysis, use pdb2pqr and reduce tools\n"
+    hbond_content = warning_header + clean_pdb_file.read_text()
+    hbond_file.write_text(hbond_content)
 
-    # For PQR, create a basic version (copy with .pqr extension)
+    # For PQR, create a basic pseudo-PQR with placeholder charges/radii
     pqr_file = output_dir / f"{pdb_id}.pqr"
-    pqr_file.write_text(clean_pdb_file.read_text())
+    pqr_content = create_basic_pqr(clean_pdb_file)
+    pqr_file.write_text(pqr_content)
 
     return {
         'clean_pdb': clean_pdb_file,
