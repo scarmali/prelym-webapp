@@ -48,6 +48,7 @@ def test_prep_agent_dependencies():
 
 # Temporarily disable full agent to force simple agent usage
 # This ensures reliable functionality in production environments
+IMPORT_ERROR_MSG = ""
 try:
     # Force fallback to simple agent for now
     raise ImportError("Forcing simple agent for production reliability")
@@ -65,10 +66,11 @@ except ImportError:
         PREP_AGENT_AVAILABLE = True
         PREP_AGENT_TYPE = "basic"
         print("Using basic preparation agent (no pdbfixer/openmm)")
-    except ImportError:
+    except ImportError as e:
         PREP_AGENT_AVAILABLE = False
         PREP_AGENT_TYPE = "none"
-        print("Warning: No preparation agent available")
+        IMPORT_ERROR_MSG = str(e)
+        print(f"Warning: No preparation agent available - {e}")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -630,7 +632,8 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
 def prepare_files():
     """Start automated file preparation using PRELYM preparation agent"""
     if not PREP_AGENT_AVAILABLE:
-        return jsonify({'error': 'PRELYM preparation agent not available (requires pdbfixer/openmm)'}), 503
+        error_msg = f'PRELYM preparation agent not available: {IMPORT_ERROR_MSG}' if IMPORT_ERROR_MSG else 'PRELYM preparation agent not available (requires pdbfixer/openmm)'
+        return jsonify({'error': error_msg}), 503
 
     try:
         data = request.get_json()
