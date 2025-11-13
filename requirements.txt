@@ -18,7 +18,7 @@ pdb2pqr>=3.6.2  # Now available via pip - enables full preparation agent
 # Molecular analysis dependencies
 freesasa>=2.1.0
 MDAnalysis>=2.4.0
-propkatraj>=1.1.0
+# propkatraj>=1.1.0  # Conflicts with pdb2pqr propka requirements
 mdtraj>=1.9.7
 
 # Excel file handling
