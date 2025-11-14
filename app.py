@@ -512,13 +512,26 @@ def with_timeout(timeout_seconds=300):
     """Decorator to add timeout to functions (default 5 minutes)"""
     def decorator(func):
         def wrapper(*args, **kwargs):
+            import threading
+
+            print(f"[PRELYM Timeout] Starting function with {timeout_seconds}s timeout")
+
+            # Check if we're in the main thread (signal only works in main thread)
+            if threading.current_thread() is not threading.main_thread():
+                print(f"[PRELYM Timeout] Warning: Signal-based timeout not supported in threads, using fallback")
+                # Fallback: just run the function without signal timeout
+                # The status check timeout will catch long-running jobs
+                return func(*args, **kwargs)
+
             # Set up signal handler for timeout
             old_handler = signal.signal(signal.SIGALRM, timeout_handler)
             signal.alarm(timeout_seconds)
+            print(f"[PRELYM Timeout] Signal alarm set for {timeout_seconds} seconds")
 
             try:
                 result = func(*args, **kwargs)
                 signal.alarm(0)  # Cancel the alarm
+                print(f"[PRELYM Timeout] Function completed successfully")
                 return result
             except TimeoutException:
                 # Handle timeout
@@ -532,6 +545,7 @@ def with_timeout(timeout_seconds=300):
             finally:
                 signal.signal(signal.SIGALRM, old_handler)  # Restore original handler
                 signal.alarm(0)  # Cancel any remaining alarm
+                print(f"[PRELYM Timeout] Timeout handler cleanup completed")
         return wrapper
     return decorator
 
@@ -811,6 +825,26 @@ def get_preparation_status(job_id):
     """Get status of file preparation job"""
     global prep_job_status
     print(f"[PRELYM Status] Looking for job {job_id}, current jobs in memory: {list(prep_job_status.keys())}")
+    if job_id in prep_job_status:
+        job_data = prep_job_status[job_id]
+        print(f"[PRELYM Status] Found job {job_id}: status='{job_data.get('status', 'unknown')}', progress={job_data.get('progress', 0)}, message='{job_data.get('message', 'no message')}'")
+        # Check for long-running jobs and mark them as failed
+        created_at = job_data.get('created_at')
+        if created_at:
+            from datetime import datetime
+            try:
+                job_created = datetime.fromisoformat(created_at)
+                time_running = datetime.now() - job_created
+                print(f"[PRELYM Status] Job {job_id} has been running for {time_running}")
+                # If job has been running for more than 10 minutes and still processing, mark as failed
+                if time_running.total_seconds() > 600 and job_data.get('status') == 'processing':
+                    print(f"[PRELYM Status] Job {job_id} timed out after {time_running}, marking as failed")
+                    prep_job_status[job_id]['status'] = 'failed'
+                    prep_job_status[job_id]['message'] = f'Job timed out after running for {time_running}'
+                    save_prep_job_status()
+            except Exception as e:
+                print(f"[PRELYM Status] Error checking job duration: {e}")
+
     if job_id not in prep_job_status:
         print(f"Prep job {job_id} not found. Available jobs: {list(prep_job_status.keys())}")
         print(f"[PRELYM Status] Attempting to reload from disk...")
