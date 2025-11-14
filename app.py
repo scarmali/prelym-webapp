@@ -585,42 +585,66 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
         prep_job_status[job_id]['progress'] = 30
         save_prep_job_status()
 
-        # Handle different agent types
-        if PREP_AGENT_TYPE == "basic":
+        # Handle different agent types based on actual methods available
+        # Check if agent has unified interface methods (SimplePrepAgent style)
+        has_unified_interface = hasattr(agent, 'prepare_from_protein') and hasattr(agent, 'prepare_from_pdb_id')
+
+        if PREP_AGENT_TYPE == "basic" or has_unified_interface:
             # Use the SimplePrepAgent interface
-            prep_job_status[job_id]['message'] = 'Starting basic file preparation...'
+            prep_job_status[job_id]['message'] = 'Starting file preparation with unified interface...'
+            save_prep_job_status()
+        elif PREP_AGENT_TYPE == "full" and not has_unified_interface:
+            # Full agent detected but lacks unified interface - fallback to simple agent
+            print(f"[PRELYM Prep] Job {job_id}: Full agent lacks unified interface, falling back to SimplePrepAgent")
+            prep_job_status[job_id]['message'] = 'Full agent incompatible, using simple agent fallback...'
             save_prep_job_status()
 
-            if input_type == 'protein':
-                prep_job_status[job_id]['progress'] = 40
-                prep_job_status[job_id]['message'] = f'Searching for protein: {input_value}'
+            # Import and use simple agent instead
+            try:
+                from simple_prep_agent import SimplePrepAgent
+                agent = SimplePrepAgent()
+                print(f"[PRELYM Prep] Job {job_id}: Successfully switched to SimplePrepAgent")
+                prep_job_status[job_id]['message'] = 'Starting basic file preparation...'
                 save_prep_job_status()
-                print(f"[PRELYM Prep] Job {job_id}: About to call prepare_from_protein('{input_value}', '{output_dir}')")
-                print(f"[PRELYM Prep] Job {job_id}: Agent type: {type(agent)}, has prepare_from_protein: {hasattr(agent, 'prepare_from_protein')}")
+            except ImportError as e:
+                raise Exception(f"Failed to import SimplePrepAgent fallback: {e}")
+        else:
+            # Use the SimplePrepAgent interface (fallback case)
+            prep_job_status[job_id]['message'] = 'Starting file preparation...'
+            save_prep_job_status()
 
-                try:
-                    files = agent.prepare_from_protein(input_value, Path(output_dir))
-                    print(f"[PRELYM Prep] Job {job_id}: prepare_from_protein completed successfully")
-                    print(f"[PRELYM Prep] Job {job_id}: Returned files object: {files}")
-                    print(f"[PRELYM Prep] Job {job_id}: Files type: {type(files)}")
-                    if isinstance(files, dict):
-                        print(f"[PRELYM Prep] Job {job_id}: Files keys: {list(files.keys())}")
-                        for key, path in files.items():
-                            print(f"[PRELYM Prep] Job {job_id}: {key} -> {path} (exists: {Path(path).exists()})")
-                except Exception as e:
-                    print(f"[PRELYM Prep] Job {job_id}: ERROR in prepare_from_protein: {type(e).__name__}: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    raise
-            elif input_type == 'pdb_id':
-                prep_job_status[job_id]['progress'] = 40
-                prep_job_status[job_id]['message'] = f'Preparing files for PDB ID: {input_value}'
-                save_prep_job_status()
-                print(f"[PRELYM Prep] Job {job_id}: About to call prepare_from_pdb_id('{input_value}', '{output_dir}')")
-                print(f"[PRELYM Prep] Job {job_id}: Agent type: {type(agent)}, has prepare_from_pdb_id: {hasattr(agent, 'prepare_from_pdb_id')}")
+        # All paths above should have a working agent with unified interface at this point
+        # Now proceed with the unified interface calls
+        if input_type == 'protein':
+            prep_job_status[job_id]['progress'] = 40
+            prep_job_status[job_id]['message'] = f'Searching for protein: {input_value}'
+            save_prep_job_status()
+            print(f"[PRELYM Prep] Job {job_id}: About to call prepare_from_protein('{input_value}', '{output_dir}')")
+            print(f"[PRELYM Prep] Job {job_id}: Agent type: {type(agent)}, has prepare_from_protein: {hasattr(agent, 'prepare_from_protein')}")
 
-                try:
-                    files = agent.prepare_from_pdb_id(input_value, Path(output_dir))
+            try:
+                files = agent.prepare_from_protein(input_value, Path(output_dir))
+                print(f"[PRELYM Prep] Job {job_id}: prepare_from_protein completed successfully")
+                print(f"[PRELYM Prep] Job {job_id}: Returned files object: {files}")
+                print(f"[PRELYM Prep] Job {job_id}: Files type: {type(files)}")
+                if isinstance(files, dict):
+                    print(f"[PRELYM Prep] Job {job_id}: Files keys: {list(files.keys())}")
+                    for key, path in files.items():
+                        print(f"[PRELYM Prep] Job {job_id}: {key} -> {path} (exists: {Path(path).exists()})")
+            except Exception as e:
+                print(f"[PRELYM Prep] Job {job_id}: ERROR in prepare_from_protein: {type(e).__name__}: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
+        elif input_type == 'pdb_id':
+            prep_job_status[job_id]['progress'] = 40
+            prep_job_status[job_id]['message'] = f'Preparing files for PDB ID: {input_value}'
+            save_prep_job_status()
+            print(f"[PRELYM Prep] Job {job_id}: About to call prepare_from_pdb_id('{input_value}', '{output_dir}')")
+            print(f"[PRELYM Prep] Job {job_id}: Agent type: {type(agent)}, has prepare_from_pdb_id: {hasattr(agent, 'prepare_from_pdb_id')}")
+
+            try:
+                files = agent.prepare_from_pdb_id(input_value, Path(output_dir))
                     print(f"[PRELYM Prep] Job {job_id}: prepare_from_pdb_id completed successfully")
                     print(f"[PRELYM Prep] Job {job_id}: Returned files object: {files}")
                     print(f"[PRELYM Prep] Job {job_id}: Files type: {type(files)}")
