@@ -560,14 +560,18 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
         save_prep_job_status()
 
         # Initialize the preparation agent
+        print(f"[PRELYM Prep] Job {job_id}: Initializing preparation agent")
         agent = PrelymPrepAgent()
+        print(f"[PRELYM Prep] Job {job_id}: Agent initialized successfully")
 
         prep_job_status[job_id]['progress'] = 20
         prep_job_status[job_id]['message'] = 'Checking system dependencies...'
         save_prep_job_status()
 
         # Check dependencies availability
+        print(f"[PRELYM Prep] Job {job_id}: Checking dependencies")
         tools = agent.check_dependencies()
+        print(f"[PRELYM Prep] Job {job_id}: Dependencies checked: {tools}")
 
         # Log which agent type is being used
         if PREP_AGENT_TYPE == "basic":
@@ -591,12 +595,44 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
                 prep_job_status[job_id]['progress'] = 40
                 prep_job_status[job_id]['message'] = f'Searching for protein: {input_value}'
                 save_prep_job_status()
-                files = agent.prepare_from_protein(input_value, Path(output_dir))
+                print(f"[PRELYM Prep] Job {job_id}: About to call prepare_from_protein('{input_value}', '{output_dir}')")
+                print(f"[PRELYM Prep] Job {job_id}: Agent type: {type(agent)}, has prepare_from_protein: {hasattr(agent, 'prepare_from_protein')}")
+
+                try:
+                    files = agent.prepare_from_protein(input_value, Path(output_dir))
+                    print(f"[PRELYM Prep] Job {job_id}: prepare_from_protein completed successfully")
+                    print(f"[PRELYM Prep] Job {job_id}: Returned files object: {files}")
+                    print(f"[PRELYM Prep] Job {job_id}: Files type: {type(files)}")
+                    if isinstance(files, dict):
+                        print(f"[PRELYM Prep] Job {job_id}: Files keys: {list(files.keys())}")
+                        for key, path in files.items():
+                            print(f"[PRELYM Prep] Job {job_id}: {key} -> {path} (exists: {Path(path).exists()})")
+                except Exception as e:
+                    print(f"[PRELYM Prep] Job {job_id}: ERROR in prepare_from_protein: {type(e).__name__}: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    raise
             elif input_type == 'pdb_id':
                 prep_job_status[job_id]['progress'] = 40
                 prep_job_status[job_id]['message'] = f'Preparing files for PDB ID: {input_value}'
                 save_prep_job_status()
-                files = agent.prepare_from_pdb_id(input_value, Path(output_dir))
+                print(f"[PRELYM Prep] Job {job_id}: About to call prepare_from_pdb_id('{input_value}', '{output_dir}')")
+                print(f"[PRELYM Prep] Job {job_id}: Agent type: {type(agent)}, has prepare_from_pdb_id: {hasattr(agent, 'prepare_from_pdb_id')}")
+
+                try:
+                    files = agent.prepare_from_pdb_id(input_value, Path(output_dir))
+                    print(f"[PRELYM Prep] Job {job_id}: prepare_from_pdb_id completed successfully")
+                    print(f"[PRELYM Prep] Job {job_id}: Returned files object: {files}")
+                    print(f"[PRELYM Prep] Job {job_id}: Files type: {type(files)}")
+                    if isinstance(files, dict):
+                        print(f"[PRELYM Prep] Job {job_id}: Files keys: {list(files.keys())}")
+                        for key, path in files.items():
+                            print(f"[PRELYM Prep] Job {job_id}: {key} -> {path} (exists: {Path(path).exists()})")
+                except Exception as e:
+                    print(f"[PRELYM Prep] Job {job_id}: ERROR in prepare_from_pdb_id: {type(e).__name__}: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    raise
             elif input_type == 'pdb_file':
                 # For uploaded files, copy to output dir and process
                 prep_job_status[job_id]['progress'] = 40
@@ -604,7 +640,23 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
                 save_prep_job_status()
                 # Extract PDB ID from filename or use generic name
                 pdb_name = Path(input_value).stem
-                files = agent.prepare_from_pdb_id(pdb_name, Path(output_dir))
+                print(f"[PRELYM Prep] Job {job_id}: About to call prepare_from_pdb_id('{pdb_name}', '{output_dir}')")
+                print(f"[PRELYM Prep] Job {job_id}: Agent type: {type(agent)}, has prepare_from_pdb_id: {hasattr(agent, 'prepare_from_pdb_id')}")
+
+                try:
+                    files = agent.prepare_from_pdb_id(pdb_name, Path(output_dir))
+                    print(f"[PRELYM Prep] Job {job_id}: prepare_from_pdb_id (file) completed successfully")
+                    print(f"[PRELYM Prep] Job {job_id}: Returned files object: {files}")
+                    print(f"[PRELYM Prep] Job {job_id}: Files type: {type(files)}")
+                    if isinstance(files, dict):
+                        print(f"[PRELYM Prep] Job {job_id}: Files keys: {list(files.keys())}")
+                        for key, path in files.items():
+                            print(f"[PRELYM Prep] Job {job_id}: {key} -> {path} (exists: {Path(path).exists()})")
+                except Exception as e:
+                    print(f"[PRELYM Prep] Job {job_id}: ERROR in prepare_from_pdb_id (file): {type(e).__name__}: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    raise
 
             prep_job_status[job_id]['progress'] = 90
             prep_job_status[job_id]['message'] = 'Basic preparation completed!'
