@@ -12,6 +12,35 @@ from MDAnalysis import *
 # from propkatraj import get_propka  # Not available in current version
 import itertools
 import numpy as np
+
+# Safe comparison functions to handle NaN values
+def safe_less_equal(a, b, default=False):
+    """Safe <= comparison that handles NaN values"""
+    try:
+        if pd.isna(a) or pd.isna(b):
+            return default
+        return float(a) <= float(b)
+    except (ValueError, TypeError):
+        return default
+
+def safe_greater(a, b, default=False):
+    """Safe > comparison that handles NaN values"""
+    try:
+        if pd.isna(a) or pd.isna(b):
+            return default
+        return float(a) > float(b)
+    except (ValueError, TypeError):
+        return default
+
+def safe_greater_equal(a, b, default=False):
+    """Safe >= comparison that handles NaN values"""
+    try:
+        if pd.isna(a) or pd.isna(b):
+            return default
+        return float(a) >= float(b)
+    except (ValueError, TypeError):
+        return default
+
 # Robust DSSP function with fallbacks
 def dsspf(filename):
     """DSSP function with multiple fallback strategies"""
@@ -723,10 +752,10 @@ def decision_tree(filename,filename1,filename2,probe_radius):
         
             #ESA filter
 
-            if df_chain[i]['ESA'][j] <= 50:
+            if safe_less_equal(df_chain[i]['ESA'][j], 50):
                 inter = 'non-reacting'
 
-            elif df_chain[i]['ESA'][j] > 50:
+            elif safe_greater(df_chain[i]['ESA'][j], 50):
             
                 #First Entry:
                 
@@ -743,7 +772,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                 inter = 'slow-reacting'
                             
                             elif df_chain[i]['Secondary Structure'][j] == 'Strand':
-                                if df_chain[i]['pKa'][j] <= 10.3:
+                                if safe_less_equal(df_chain[i]['pKa'][j], 10.3):
                                     if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                         inter = 'fast-reacting'
                                     else:
@@ -753,7 +782,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                     inter = 'slow-reacting'
                                 
                             else:  # Coil, Turn, or other flexible structures
-                                if df_chain[i]['ESA'][j] >= 100:
+                                if safe_greater_equal(df_chain[i]['ESA'][j], 100):
                                     if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                         inter = 'fast-reacting'
                                     
@@ -771,8 +800,8 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                 
                     #Steric Hindrance:
                 
-                    elif (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j+1] - 1) and (df_chain[i]['ESA'][j+1] > 50):
-                        if df_chain[i]['pKa'][j] > df_chain[i]['pKa'][j+1]:
+                    elif (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j+1] - 1) and (safe_greater(df_chain[i]['ESA'][j+1], 50)):
+                        if safe_greater(df_chain[i]['pKa'][j], df_chain[i]['pKa'][j+1]):
                             inter = 'non-reacting'
                         
                         else:
@@ -786,7 +815,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                     inter = 'slow-reacting'
                                 
                                 elif df_chain[i]['Secondary Structure'][j] == 'Strand':
-                                    if df_chain[i]['pKa'][j] <= 10.3:
+                                    if safe_less_equal(df_chain[i]['pKa'][j], 10.3):
                                         if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                             inter = 'fast-reacting'
                                         else:
@@ -796,7 +825,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                         inter = 'slow-reacting'
                                 
                                 else:
-                                    if df_chain[i]['ESA'][j] >= 100:
+                                    if safe_greater_equal(df_chain[i]['ESA'][j], 100):
                                         if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                             inter = 'fast-reacting'
                                     
@@ -822,7 +851,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                 inter = 'slow-reacting'
                                 
                             elif df_chain[i]['Secondary Structure'][j] == 'Strand':
-                                if df_chain[i]['pKa'][j] <= 10.3:
+                                if safe_less_equal(df_chain[i]['pKa'][j], 10.3):
                                     if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                         inter = 'fast-reacting'
                                     else:
@@ -832,7 +861,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                     inter = 'slow-reacting'
                                 
                             else:  # Coil, Turn, or other flexible structures
-                                if df_chain[i]['ESA'][j] >= 100:
+                                if safe_greater_equal(df_chain[i]['ESA'][j], 100):
                                     if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                         inter = 'fast-reacting'
                                     
@@ -853,7 +882,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                     #Steric Hindrance:
                 
                     if (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j-1] + 1) and (df_chain[i]['ESA'][j-1] > 50):
-                        if df_chain[i]['pKa'][j] > df_chain[i]['pKa'][j-1]:
+                        if safe_greater(df_chain[i]['pKa'][j], df_chain[i]['pKa'][j-1]):
                             inter = 'non-reacting'
                         
                         else:
@@ -867,7 +896,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                     inter = 'slow-reacting'
                                 
                                 elif df_chain[i]['Secondary Structure'][j] == 'Strand':
-                                    if df_chain[i]['pKa'][j] <= 10.3:
+                                    if safe_less_equal(df_chain[i]['pKa'][j], 10.3):
                                         if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                             inter = 'fast-reacting'
                                         else:
@@ -877,7 +906,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                         inter = 'slow-reacting'
                                 
                                 else:
-                                    if df_chain[i]['ESA'][j] >= 100:
+                                    if safe_greater_equal(df_chain[i]['ESA'][j], 100):
                                         if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                             inter = 'fast-reacting'
                                     
@@ -902,7 +931,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                 inter = 'slow-reacting'
                                 
                             elif df_chain[i]['Secondary Structure'][j] == 'Strand':
-                                if df_chain[i]['pKa'][j] <= 10.3:
+                                if safe_less_equal(df_chain[i]['pKa'][j], 10.3):
                                     if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                         inter = 'fast-reacting'
                                     else:
@@ -912,7 +941,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                     inter = 'slow-reacting'
                                     
                             else:  # Coil, Turn, or other flexible structures
-                                if df_chain[i]['ESA'][j] >= 100:
+                                if safe_greater_equal(df_chain[i]['ESA'][j], 100):
                                     if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                         inter = 'fast-reacting'
                                     
@@ -935,7 +964,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                 
                     if (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j-1] + 1) and (df_chain[i]['ESA'][j-1]> 50):
                     
-                        if df_chain[i]['pKa'][j] > df_chain[i]['pKa'][j-1]:
+                        if safe_greater(df_chain[i]['pKa'][j], df_chain[i]['pKa'][j-1]):
                             inter = 'non-reacting'
                         
                         else:
@@ -949,7 +978,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                     inter = 'slow-reacting'
                                 
                                 elif df_chain[i]['Secondary Structure'][j] == 'Strand':
-                                    if df_chain[i]['pKa'][j] <= 10.3:
+                                    if safe_less_equal(df_chain[i]['pKa'][j], 10.3):
                                         if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                             inter = 'fast-reacting'
                                         else:
@@ -959,7 +988,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                         inter = 'slow-reacting'
                                 
                                 else:
-                                    if df_chain[i]['ESA'][j] >= 100:
+                                    if safe_greater_equal(df_chain[i]['ESA'][j], 100):
                                         if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                             inter = 'fast-reacting'
                                     
@@ -977,7 +1006,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                 
                     elif (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j+1] - 1) and (df_chain[i]['ESA'][j+1]> 50):
                     
-                        if df_chain[i]['pKa'][j] > df_chain[i]['pKa'][j+1]:
+                        if safe_greater(df_chain[i]['pKa'][j], df_chain[i]['pKa'][j+1]):
                             inter = 'non-reacting'
                         
                         else:
@@ -991,7 +1020,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                     inter = 'slow-reacting'
                                 
                                 elif df_chain[i]['Secondary Structure'][j] == 'Strand':
-                                    if df_chain[i]['pKa'][j] <= 10.3:
+                                    if safe_less_equal(df_chain[i]['pKa'][j], 10.3):
                                         if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                             inter = 'fast-reacting'
                                         else:
@@ -1001,7 +1030,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                         inter = 'slow-reacting'
                                 
                                 else:
-                                    if df_chain[i]['ESA'][j] >= 100:
+                                    if safe_greater_equal(df_chain[i]['ESA'][j], 100):
                                         if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                             inter = 'fast-reacting'
                                     
@@ -1027,7 +1056,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                 inter = 'slow-reacting'
                                 
                             elif df_chain[i]['Secondary Structure'][j] == 'Strand':
-                                if df_chain[i]['pKa'][j] <= 10.3:
+                                if safe_less_equal(df_chain[i]['pKa'][j], 10.3):
                                     if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                         inter = 'fast-reacting'
                                     else:
@@ -1037,7 +1066,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                                     inter = 'slow-reacting'
                                 
                             else:  # Coil, Turn, or other flexible structures
-                                if df_chain[i]['ESA'][j] >= 100:
+                                if safe_greater_equal(df_chain[i]['ESA'][j], 100):
                                     if df_chain[i]['Area Of Lower Charge'][j] == 'Yes':
                                         inter = 'fast-reacting'
                                     
