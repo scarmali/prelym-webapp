@@ -631,6 +631,17 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
                     print(f"[PRELYM Prep] Job {job_id}: Files keys: {list(files.keys())}")
                     for key, path in files.items():
                         print(f"[PRELYM Prep] Job {job_id}: {key} -> {path} (exists: {Path(path).exists()})")
+
+                prep_job_status[job_id]['progress'] = 90
+                prep_job_status[job_id]['message'] = 'Basic preparation completed!'
+                save_prep_job_status()
+
+                # Map SimplePrepAgent output to expected format
+                prep_job_status[job_id]['files'] = {
+                    'clean_pdb': str(files['clean_pdb']),
+                    'h_pdb': str(files['hbond_file']),  # H-bond file serves as hydrogen-added file
+                    'pqr_file': str(files['pqr_file'])
+                }
             except Exception as e:
                 print(f"[PRELYM Prep] Job {job_id}: ERROR in prepare_from_protein: {type(e).__name__}: {e}")
                 import traceback
@@ -652,6 +663,17 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
                     print(f"[PRELYM Prep] Job {job_id}: Files keys: {list(files.keys())}")
                     for key, path in files.items():
                         print(f"[PRELYM Prep] Job {job_id}: {key} -> {path} (exists: {Path(path).exists()})")
+
+                prep_job_status[job_id]['progress'] = 90
+                prep_job_status[job_id]['message'] = 'Basic preparation completed!'
+                save_prep_job_status()
+
+                # Map SimplePrepAgent output to expected format
+                prep_job_status[job_id]['files'] = {
+                    'clean_pdb': str(files['clean_pdb']),
+                    'h_pdb': str(files['hbond_file']),  # H-bond file serves as hydrogen-added file
+                    'pqr_file': str(files['pqr_file'])
+                }
             except Exception as e:
                 print(f"[PRELYM Prep] Job {job_id}: ERROR in prepare_from_pdb_id: {type(e).__name__}: {e}")
                 import traceback
@@ -676,22 +698,22 @@ def process_preparation(job_id, input_type, input_value, ph, forcefield, output_
                     print(f"[PRELYM Prep] Job {job_id}: Files keys: {list(files.keys())}")
                     for key, path in files.items():
                         print(f"[PRELYM Prep] Job {job_id}: {key} -> {path} (exists: {Path(path).exists()})")
+
+                prep_job_status[job_id]['progress'] = 90
+                prep_job_status[job_id]['message'] = 'Basic preparation completed!'
+                save_prep_job_status()
+
+                # Map SimplePrepAgent output to expected format
+                prep_job_status[job_id]['files'] = {
+                    'clean_pdb': str(files['clean_pdb']),
+                    'h_pdb': str(files['hbond_file']),  # H-bond file serves as hydrogen-added file
+                    'pqr_file': str(files['pqr_file'])
+                }
             except Exception as e:
                 print(f"[PRELYM Prep] Job {job_id}: ERROR in prepare_from_pdb_id (file): {type(e).__name__}: {e}")
                 import traceback
                 traceback.print_exc()
                 raise
-
-            prep_job_status[job_id]['progress'] = 90
-            prep_job_status[job_id]['message'] = 'Basic preparation completed!'
-            save_prep_job_status()
-
-            # Map SimplePrepAgent output to expected format
-            prep_job_status[job_id]['files'] = {
-                'clean_pdb': str(files['clean_pdb']),
-                'h_pdb': str(files['hbond_file']),  # H-bond file serves as hydrogen-added file
-                'pqr_file': str(files['pqr_file'])
-            }
 
         else:
             # Use the full PrelymPrepAgent interface
