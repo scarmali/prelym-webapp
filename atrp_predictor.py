@@ -616,7 +616,7 @@ def pdb2charge(filename,filename2):
 
     for i in range(len(data)):
     
-        if data['Surface Charge'][i] >100:
+        if safe_greater(data['Surface Charge'][i], 100):
             local_charge[i] = 'Yes'
     
         else:
@@ -881,7 +881,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                 
                     #Steric Hindrance:
                 
-                    if (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j-1] + 1) and (df_chain[i]['ESA'][j-1] > 50):
+                    if (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j-1] + 1) and (safe_greater(df_chain[i]['ESA'][j-1], 50)):
                         if safe_greater(df_chain[i]['pKa'][j], df_chain[i]['pKa'][j-1]):
                             inter = 'non-reacting'
                         
@@ -962,7 +962,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                 
                     #Previous Entry:
                 
-                    if (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j-1] + 1) and (df_chain[i]['ESA'][j-1]> 50):
+                    if (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j-1] + 1) and (safe_greater(df_chain[i]['ESA'][j-1], 50)):
                     
                         if safe_greater(df_chain[i]['pKa'][j], df_chain[i]['pKa'][j-1]):
                             inter = 'non-reacting'
@@ -1004,7 +1004,7 @@ def decision_tree(filename,filename1,filename2,probe_radius):
                 
                     #Later Entry:
                 
-                    elif (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j+1] - 1) and (df_chain[i]['ESA'][j+1]> 50):
+                    elif (df_chain[i]['Residue'][j] == df_chain[i]['Residue'][j+1] - 1) and (safe_greater(df_chain[i]['ESA'][j+1], 50)):
                     
                         if safe_greater(df_chain[i]['pKa'][j], df_chain[i]['pKa'][j+1]):
                             inter = 'non-reacting'
