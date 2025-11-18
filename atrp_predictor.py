@@ -353,21 +353,28 @@ def pdb2hbond(filename,filename1):
             resid_hbonds.append(q)
             
     df = pd.DataFrame({'Residue':resid_hbonds})
+
+    # Handle case where no lysine H-bonds were found
+    if len(df) == 0:
+        print(f"Warning: No lysine H-bonds found in {filename1}")
+        print(f"Total H-bonds detected: {len(hbonds_list)}")
+        return pd.DataFrame()  # Return empty DataFrame
+
     df['Residue'] = df['Residue'].astype(int)
-    
+
     ppdb = PandasPdb().read_pdb(filename)
     df1 = ppdb.df
     df2 = df1['ATOM']
     chains = df2['chain_id'].unique()
     min_chain = []
     max_chain = []
-    
+
     for i in range(len(chains)):
         mini = df2[df2['chain_id'] == chains[i]]['residue_number'].min()
         maxi = df2[df2['chain_id'] == chains[i]]['residue_number'].max()
         min_chain.append(mini)
         max_chain.append(maxi)
-        
+
     index = np.zeros(len(df))
     counter = 0
 
@@ -375,8 +382,10 @@ def pdb2hbond(filename,filename1):
         if safe_less_than(df['Residue'][i], df['Residue'][i-1]):
             counter += 1
         index[i] = counter
-    
-    index[-1] = counter
+
+    # Only set last index if array is not empty
+    if len(index) > 0:
+        index[-1] = counter
     
     df['Counter'] = index
     df['Counter'] = df['Counter'].astype(int)
