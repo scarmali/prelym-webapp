@@ -57,6 +57,16 @@ def safe_equal(a, b, default=False):
     except (ValueError, TypeError, OverflowError):
         return default
 
+def safe_less_than(a, b, default=False):
+    """Safe < comparison that handles NaN values and type mismatches"""
+    try:
+        if pd.isna(a) or pd.isna(b):
+            return default
+        # Convert to float to handle any numeric types
+        return float(a) < float(b)
+    except (ValueError, TypeError, OverflowError):
+        return default
+
 # Robust DSSP function with fallbacks
 def dsspf(filename):
     """DSSP function with multiple fallback strategies"""
@@ -362,7 +372,7 @@ def pdb2hbond(filename,filename1):
     counter = 0
 
     for i in range(1,len(df)-1):
-        if df['Residue'][i] < df['Residue'][i-1]:
+        if safe_less_than(df['Residue'][i], df['Residue'][i-1]):
             counter += 1
         index[i] = counter
     
@@ -382,7 +392,7 @@ def pdb2hbond(filename,filename1):
         
         for j in range(len(data)):
             for k in range(count,count+spl):
-                if (data['Residue'][j]>min_chain[k]) and (data['Residue'][j]<max_chain[k]):
+                if safe_greater(data['Residue'][j], min_chain[k]) and safe_less_than(data['Residue'][j], max_chain[k]):
                     name = chains[k]
             
             chain_name.append(name)
@@ -511,16 +521,16 @@ def pka_final(filename):
 
     for index,row in pka_data.iterrows():
 
-        if (row['Residue'] >= cur_min) and (row['Residue'] <= cur_max) and isinrange:
+        if safe_greater_equal(row['Residue'], cur_min) and safe_less_equal(row['Residue'], cur_max) and isinrange:
 
             index_list[min_max.iloc[i,0]].append(index)
 
-            if row['Residue'] == cur_max:
+            if safe_equal(row['Residue'], cur_max):
                 isinrange = False
 
-        elif min_max.shape[0]-1 > i:
+        elif safe_greater(min_max.shape[0]-1, i):
 
-            if (row['Residue'] >= min_max.iloc[i+1,1]) and (row['Residue'] <= min_max.iloc[i+1,2]):
+            if safe_greater_equal(row['Residue'], min_max.iloc[i+1,1]) and safe_less_equal(row['Residue'], min_max.iloc[i+1,2]):
 
                 i += 1   
                 cur_min = min_max.iloc[i,1]
