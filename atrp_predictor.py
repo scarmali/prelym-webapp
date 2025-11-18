@@ -13,32 +13,48 @@ from MDAnalysis import *
 import itertools
 import numpy as np
 
-# Safe comparison functions to handle NaN values
+# Safe comparison functions to handle NaN values and type mismatches
 def safe_less_equal(a, b, default=False):
-    """Safe <= comparison that handles NaN values"""
+    """Safe <= comparison that handles NaN values and type mismatches"""
     try:
         if pd.isna(a) or pd.isna(b):
             return default
+        # Convert to float to handle any numeric types
         return float(a) <= float(b)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         return default
 
 def safe_greater(a, b, default=False):
-    """Safe > comparison that handles NaN values"""
+    """Safe > comparison that handles NaN values and type mismatches"""
     try:
         if pd.isna(a) or pd.isna(b):
             return default
+        # Convert to float to handle any numeric types
         return float(a) > float(b)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         return default
 
 def safe_greater_equal(a, b, default=False):
-    """Safe >= comparison that handles NaN values"""
+    """Safe >= comparison that handles NaN values and type mismatches"""
     try:
         if pd.isna(a) or pd.isna(b):
             return default
+        # Convert to float to handle any numeric types
         return float(a) >= float(b)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
+        return default
+
+def safe_equal(a, b, default=False):
+    """Safe == comparison that handles NaN values and type mismatches"""
+    try:
+        if pd.isna(a) or pd.isna(b):
+            return default
+        # Try direct comparison first
+        if a == b:
+            return True
+        # Try numeric comparison if direct fails
+        return float(a) == float(b)
+    except (ValueError, TypeError, OverflowError):
         return default
 
 # Robust DSSP function with fallbacks
@@ -731,8 +747,30 @@ def final_data_table(filename,filename1,filename2,probe_radius):
 
 
 def decision_tree(filename,filename1,filename2,probe_radius):
-    
+
     df = final_data_table(filename,filename1,filename2,probe_radius)
+
+    # Ensure data types are consistent to prevent NumPy ufunc errors
+    try:
+        # Convert residue numbers to integers where possible
+        if 'Residue' in df.columns:
+            df['Residue'] = pd.to_numeric(df['Residue'], errors='coerce')
+
+        # Ensure numeric columns are properly typed
+        numeric_columns = ['ESA', 'pKa']
+        for col in numeric_columns:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        # Ensure string columns are properly typed
+        string_columns = ['Chain', 'Amino Group', 'Secondary Structure', 'H-Donor', 'Area Of Lower Charge']
+        for col in string_columns:
+            if col in df.columns:
+                df[col] = df[col].astype(str)
+
+    except Exception as e:
+        print(f"Warning: Data type conversion error: {e}")
+        # Continue with original data if conversion fails
 
     interaction = []
 
